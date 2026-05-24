@@ -3,10 +3,15 @@ require("dotenv").config();
 const express = require("express");
 const mongoose = require("mongoose");
 const multer = require("multer");
+const cloudinary = require("cloudinary").v2;
+
+const { CloudinaryStorage
+} = require( "multer-storage-cloudinary"
+);
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const cors = require("cors");
-const path = require("path");
+
 const authMiddleware =
   require("./middleware/authMiddleware");
 const Snap = require("./models/Snap");
@@ -30,12 +35,11 @@ app.use(
 
 app.use(express.json());
 
-app.use(
-  "/uploads",
-  express.static(
-    path.join(__dirname, "uploads")
-  )
-);
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET
+});
 
 /* ===================================
    MONGODB CONNECTION
@@ -76,51 +80,7 @@ mongoose.connect(process.env.MONGO_URI, {
 
 });
 
-/* ===================================
-   MULTER STORAGE
-=================================== */
 
-const storage =
-  multer.diskStorage({
-
-    destination: (
-      req,
-      file,
-      cb
-    ) => {
-
-      cb(
-        null,
-        "uploads/"
-      );
-
-    },
-
-    filename: (
-      req,
-      file,
-      cb
-    ) => {
-
-      cb(
-
-        null,
-
-        Date.now() +
-        "-" +
-        file.originalname.replace(
-          /\s/g,
-          "-"
-        )
-
-      );
-
-    }
-
-  });
-
-const upload =
-  multer({ storage });
 
 /* ===================================
    JWT SECRET
@@ -128,6 +88,42 @@ const upload =
 
 const JWT_SECRET =
   process.env.JWT_SECRET;
+
+cloudinary.config({
+
+  cloud_name:
+    process.env.CLOUDINARY_CLOUD_NAME,
+
+  api_key:
+    process.env.CLOUDINARY_API_KEY,
+
+  api_secret:
+    process.env.CLOUDINARY_API_SECRET
+
+});
+
+const storage =
+  new CloudinaryStorage({
+
+    cloudinary,
+
+    params: {
+
+      folder: "snapstudy",
+
+      allowed_formats: [
+        "jpg",
+        "png",
+        "jpeg",
+        "webp"
+      ]
+
+    }
+
+  });
+
+const upload =
+  multer({ storage });
 
 /* ===================================
    TIMESTAMP CONVERTER
@@ -569,9 +565,9 @@ app.post("/api/snaps",
             ),
 
           image:
-            req.file
-              ? req.file.filename
-              : null,
+  req.file
+    ? req.file.path
+    : null,
 
           lastViewed:
             new Date(),
