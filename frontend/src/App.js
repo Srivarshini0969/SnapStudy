@@ -137,7 +137,7 @@ const fetchSnaps = async () => {
     const response =
       await axios.get(
 
-        `${process.env.REACT_APP_API_URL}/snaps`,
+        `${process.env.REACT_APP_API_URL}/api/snaps`,
 
         {
           headers: {
@@ -169,7 +169,7 @@ const watchSnap = async (snap) => {
 
     await axios.put(
 
-      `${process.env.REACT_APP_API_URL}/snaps/view/${snap.id}`,
+      `${process.env.REACT_APP_API_URL}/api/snaps/view/${snap.id}`,
 
       {},
 
@@ -419,9 +419,9 @@ const handleAuth = async (e) => {
           };
 
   const response = await axios.post(
-    `${process.env.REACT_APP_API_URL}/${endpoint}`,
-    payload
-  );
+  `${process.env.REACT_APP_API_URL}/api/auth/${endpoint}`,
+  payload
+);
 
     /*----------------------------------------
       LOGIN SUCCESS
@@ -475,12 +475,13 @@ const handleForgotPassword =
   async (e) => {
     e.preventDefault();
     try {
-      await axios.post(`${process.env.REACT_APP_API_URL}/forgot-password`,
-        {
-          email: forgotEmail,
-          newPassword
-        }
-      );
+     await axios.post(
+  `${process.env.REACT_APP_API_URL}/api/auth/forgot-password`,
+  {
+    email: forgotEmail,
+    newPassword
+  }
+);
 
       toast.success(
         "Password updated"
@@ -783,7 +784,7 @@ const handleSubmit = async (e) => {
   );
 
   await axios.post(
-  `${process.env.REACT_APP_API_URL}/snaps`,
+    `${process.env.REACT_APP_API_URL}/api/snaps`,
     formData,
     {
       headers: {
@@ -857,7 +858,7 @@ const handleSubmit = async (e) => {
 const updateSnap = async (id) => {
 
   try {
-    await axios.put(`${process.env.REACT_APP_API_URL}/snaps/${id}`,
+    await axios.put(`${process.env.REACT_APP_API_URL}/api/snaps/${id}`,
       editForm,
       {
         headers: {
@@ -883,7 +884,7 @@ const updateSnap = async (id) => {
 };
   const updateStatus = async ( id,status) => {
   try {
-    await axios.put(`${process.env.REACT_APP_API_URL}/snaps/${id}`,
+    await axios.put(`${process.env.REACT_APP_API_URL}/api/snaps/${id}`,
       { status },
       {
         headers: {
@@ -911,7 +912,7 @@ const updateSnap = async (id) => {
 
   const deleteSnap = async (id) => {
     try {
-    await axios.delete(`${process.env.REACT_APP_API_URL}/snaps/${id}`,
+    await axios.delete(`${process.env.REACT_APP_API_URL}/api/snaps/${id}`,
   {
     headers: {
       authorization:

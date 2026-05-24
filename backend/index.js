@@ -225,7 +225,7 @@ const generateWatchLink = (
 =================================== */
 
 app.post(
-  "/register",
+  "/api/auth/register",
   async (req, res) => {
 
     try {
@@ -321,7 +321,7 @@ app.post(
 =================================== */
 
 app.post(
-  "/login",
+  "/api/auth/login",
   async (req, res) => {
 
     try {
@@ -414,7 +414,7 @@ app.post(
 =================================== */
 
 app.post(
-  "/forgot-password",
+  "/api/auth/forgot-password",
   async (req, res) => {
 
     try {
@@ -478,7 +478,7 @@ app.post(
    GET SNAPS
 =================================== */
 
-app.get( "/snaps",
+app.get( "/api/snaps",
   authMiddleware,
   async (req, res) => {
     try {
@@ -536,7 +536,7 @@ app.get( "/snaps",
    CREATE SNAP
 =================================== */
 
-app.post("/snaps",
+app.post("/api/snaps",
   authMiddleware,
   upload.single("image"),
 
@@ -615,7 +615,7 @@ app.post("/snaps",
 =================================== */
 
 app.put(
-  "/snaps/:id",
+  "/api/snaps/:id",
   authMiddleware,
   async (req, res) => {
 
@@ -660,7 +660,7 @@ app.put(
 =================================== */
 
 app.delete(
-  "/snaps/:id",
+  "/api/snaps/:id",
   authMiddleware,
   async (req, res) => {
 
@@ -701,7 +701,7 @@ app.delete(
 =================================== */
 
 app.put(
-  "/snaps/view/:id",
+  "/api/snaps/view/:id",
   authMiddleware,
   async (req, res) => {
 
