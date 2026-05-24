@@ -141,7 +141,7 @@ const fetchSnaps = async () => {
 
         {
           headers: {
-            authorization:
+            Authorization:
               token
           }
         }
@@ -175,7 +175,7 @@ const watchSnap = async (snap) => {
 
       {
         headers: {
-          authorization:
+          Authorization:
             localStorage.getItem("token")
         }
       }
@@ -783,7 +783,7 @@ const handleSubmit = async (e) => {
     formData,
     {
       headers: {
-        authorization:
+        Authorization:
           localStorage.getItem("token"),
         "Content-Type":
           "multipart/form-data"
@@ -858,7 +858,7 @@ const updateSnap = async (id) => {
       editForm,
       {
         headers: {
-          authorization: localStorage.getItem("token")
+          Authorization: localStorage.getItem("token")
         }
       }
     );
@@ -884,7 +884,7 @@ const updateSnap = async (id) => {
       { status },
       {
         headers: {
-          authorization:
+          Authorization:
             localStorage.getItem("token")
         }
       }
@@ -911,7 +911,7 @@ const updateSnap = async (id) => {
     await axios.delete(`${process.env.REACT_APP_API_URL}/api/snaps/${id}`,
   {
     headers: {
-      authorization:
+      Authorization:
         localStorage.getItem("token")
     }
   }
@@ -1644,7 +1644,7 @@ className="bg-blue-500 text-white px-4 py-2 rounded-lg"
  {
      snap.image && (
         <img
-  src={`${process.env.REACT_APP_API_URL}/api/uploads/${snap.image}`}
+  src={`${process.env.REACT_APP_API_URL}/uploads/${snap.image}`}
          alt="snap"
       className="w-full h-56 object-cover"
       />
