@@ -564,8 +564,7 @@ app.post("/api/snaps",
               timestamp
             ),
 
-          image:
-  req.file
+          image: req.file
     ? req.file.path
     : null,
 
