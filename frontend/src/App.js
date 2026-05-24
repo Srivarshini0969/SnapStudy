@@ -1561,7 +1561,7 @@ className="bg-blue-500 text-white px-4 py-2 rounded-lg"
       new Date(a.lastViewed)
 
   )
-  .slice(0, 2)
+  .slice(0, 10)
   .map((snap) => (
      <div
  key={snap._id}
@@ -1644,7 +1644,7 @@ className="bg-blue-500 text-white px-4 py-2 rounded-lg"
  {
      snap.image && (
         <img
-  src={`${process.env.REACT_APP_API_URL}/uploads/${snap.image}`}
+        src={snap.image}
          alt="snap"
       className="w-full h-56 object-cover"
       />
