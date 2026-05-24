@@ -402,16 +402,11 @@ const handleAuth = async (e) => {
     const payload =
 
       isLogin
-
         ? {
-
             email: authEmail,
             password: authPassword
-
           }
-
         : {
-
             name: authName,
             email: authEmail,
             password: authPassword
@@ -834,7 +829,8 @@ const handleSubmit = async (e) => {
   =================================== */
 
   const startEdit = (snap) => {
-    setEditingId(snap.id);
+    setEditingId(snap._id);
+    
     setEditForm({
       title: snap.title || "",
       videoUrl:
@@ -1568,7 +1564,7 @@ className="bg-blue-500 text-white px-4 py-2 rounded-lg"
   .slice(0, 2)
   .map((snap) => (
      <div
- key={snap.id}
+ key={snap._id}
  className={` rounded-2xl shadow-lg p-5
 
   ${
@@ -1635,7 +1631,7 @@ className="bg-blue-500 text-white px-4 py-2 rounded-lg"
     filteredSnaps.map(
       (snap) => (
    <div
-  key={snap.id}
+  key={snap._id}
   className={`rounded-2xl shadow-lg overflow-hidden min-h-[420px] 
     p-2 hover:shadow-2xl transition duration-300
     ${
@@ -1648,7 +1644,7 @@ className="bg-blue-500 text-white px-4 py-2 rounded-lg"
  {
      snap.image && (
         <img
-  src={`${process.env.REACT_APP_API_URL}/uploads/${snap.image}`}
+  src={`${process.env.REACT_APP_API_URL}/api/uploads/${snap.image}`}
          alt="snap"
       className="w-full h-56 object-cover"
       />
@@ -1656,7 +1652,7 @@ className="bg-blue-500 text-white px-4 py-2 rounded-lg"
  }
   <div className="p-5">
     {
-    editingId === snap.id ? (
+    editingId === snap._id ? (
 
   <div className="flex flex-col gap-3">
 
@@ -1737,7 +1733,7 @@ className="bg-blue-500 text-white px-4 py-2 rounded-lg"
     </select>
 <button
   onClick={() =>
-    updateSnap(snap.id)
+    updateSnap(snap._id)
   }
   className="bg-green-500 text-white px-4 py-2 rounded-lg"
 >
@@ -1870,7 +1866,7 @@ className="bg-blue-500 text-white px-4 py-2 rounded-lg"
     }
     onChange={(e) =>
       updateStatus(
-        snap.id,
+        snap._id,
         e.target.value
       )
     }
@@ -1899,7 +1895,7 @@ className="bg-blue-500 text-white px-4 py-2 rounded-lg"
          <button
      onClick={() =>
          deleteSnap(
-        snap.id
+        snap._id
             )
         }
         className="bg-red-500 text-white px-4 py-2 rounded-lg"
