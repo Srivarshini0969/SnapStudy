@@ -622,6 +622,20 @@ app.put(
 
     try {
 
+      const updatedData = {
+        ...req.body
+      };
+
+      // convert timestamp properly
+      if (req.body.timestamp) {
+
+        updatedData.timestamp =
+          convertTimestampToSeconds(
+            req.body.timestamp
+          );
+
+      }
+
       const updatedSnap =
         await Snap.findOneAndUpdate(
 
@@ -630,7 +644,7 @@ app.put(
             userId: req.user.id
           },
 
-          req.body,
+          updatedData,
 
           {
             new: true
