@@ -5,8 +5,14 @@ const authMiddleware =
 
     try {
 
-      const token =
-        req.headers.authorization;
+      const authHeader =
+  req.header("Authorization");
+
+const token =
+  authHeader &&
+  authHeader.startsWith("Bearer ")
+    ? authHeader.split(" ")[1]
+    : authHeader;
 
       if (!token) {
 
