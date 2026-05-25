@@ -548,11 +548,17 @@ app.post("/api/snaps",
 
 }
 
-if (!req.file && !videoUrl && !note) {
+if (
+  !req.file &&
+  !videoUrl &&
+  !note &&
+  !channelName
+) {
 
   return res.status(400).json({
 
-    message: "Add image, video link, or notes"
+    message:
+      "Add YouTube link, channel name, notes, or screenshot"
 
   });
 
