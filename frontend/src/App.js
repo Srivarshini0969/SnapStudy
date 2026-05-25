@@ -721,18 +721,37 @@ toast.success(
 
 const handleSubmit = async (e) => {
   e.preventDefault();
-  if (
-    !title &&
-    !videoUrl &&
-    !timestamp &&
-    !note &&
-    !image
-  ) {
-    toast.error(
-      "Please fill at least one field"
-    );
-    return;
-  }
+  
+  if (!title.trim() && !image) {
+
+  toast.error(
+    "Add topic title or upload screenshot"
+  );
+
+  return;
+}
+
+if (!category && !image) {
+
+  toast.error(
+    "Please select subject or upload screenshot for auto-detection"
+  );
+
+  return;
+}
+
+if (
+  !videoUrl &&
+  !note &&
+  !image
+) {
+
+  toast.error(
+    "Add YouTube link, notes, or screenshot"
+  );
+
+  return;
+}
   const formData =
     new FormData();
   formData.append(
@@ -1236,9 +1255,44 @@ const updateSnap = async (id) => {
         onSubmit={handleSubmit}
         className="flex flex-col gap-4"
       >
+ <p className="text-sm text-gray-400 leading-6">
+
+  Add:
+  Title + YouTube Link + Subject
+  = Opens your exact lecture instantly without searching again.
+  If you add Channel Name too, SnapStudy tries to open topic-related lectures from that specific channel.
+
+  <br />
+  <br />
+
+  Add:
+  Title + YouTube Link + Timestamp
+  = Resume directly from where you stopped watching.
+
+  <br />
+  <br />
+
+  Add:
+  Screenshot/Image
+  = related to subjects.
+   OCR detects the topic automatically and suggests related YouTube lectures.
+
+  <br />
+  <br />
+
+  Add:
+  Notes
+  = Save quick revision points, formulas or anything you find important from the lecture.
+
+  <br />
+  <br />
+
+  Better inputs help SnapStudy organize, track, and recommend your study content more accurately.
+
+</p>
         <input
           type="text"
-          placeholder="Enter title"
+          placeholder="Topic title"
           value={title}
           onChange={(e) =>
             setTitle(e.target.value)
@@ -1253,7 +1307,7 @@ const updateSnap = async (id) => {
         />
         <input
           type="text"
-          placeholder="Paste YouTube link"
+          placeholder="YouTube lecture link"
           value={videoUrl}
           onChange={(e) =>
             setVideoUrl(e.target.value)
@@ -1268,7 +1322,7 @@ const updateSnap = async (id) => {
         />
         <input
           type="text"
-          placeholder="Channel Name"
+          placeholder="Optional channel name for accurate lecture matching"
           value={channelName}
           onChange={(e) =>
             setChannelName(e.target.value)
@@ -1283,7 +1337,7 @@ const updateSnap = async (id) => {
         />
         <input
           type="text"
-          placeholder="52:14"
+          placeholder="Resume timestamp (e.g., 52:14)"
           value={timestamp}
           onChange={(e) =>
             setTimestamp(e.target.value)
@@ -1297,7 +1351,7 @@ const updateSnap = async (id) => {
 `}
         />
    <textarea
-  placeholder="Enter notes..."
+  placeholder="Quick revision notes, formulas..."
   value={note}
   onChange={(e) =>
     setNote(e.target.value)
@@ -1324,7 +1378,7 @@ const updateSnap = async (id) => {
 `}
         >
           <option value="">
-            Select Subject
+            Select Subject *
           </option>
       <option value="DSA">
             DSA
