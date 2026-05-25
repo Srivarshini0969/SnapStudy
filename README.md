@@ -48,7 +48,7 @@ Deployment:
 ![Mobile UI](./screenshots/Screenshot%202026-05-25%20204145.png)
 
 ### OCR Detection
-![OCR](./screenshots/Screenshot%202026-05-25%20204241.png)
+![OCR](./screenshots/Screenshot%202026-05-25%20204338.png)
 
 ### Continue Watching
-![Continue](./screenshots/Screenshot%202026-05-25%20204338.png)
+![Continue Watching](./screenshots/Screenshot%202026-05-25%20204241.png)
