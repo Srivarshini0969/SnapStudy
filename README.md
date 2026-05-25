@@ -38,3 +38,17 @@ OCR:
 Deployment:
 - Railway
 - Vercel
+
+ ## Screenshots
+
+### Dashboard
+![Dashboard](./screenshots/dashboard.png)
+
+### Mobile UI
+![Mobile UI](./screenshots/mobile-ui.png)
+
+### OCR Detection
+![OCR](./screenshots/ocr-upload.png)
+
+### Continue Watching
+![Continue](./screenshots/continue-watch.png)
