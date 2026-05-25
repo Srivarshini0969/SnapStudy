@@ -285,6 +285,41 @@ useEffect(() => {
 
 }, [user]);
 
+ /*quote*/
+const quotes = [
+
+  "Do it until you achieve it.",
+
+  "Consistency beats motivation.",
+
+  "Small progress every day matters.",
+
+  "Discipline creates success.",
+
+  "Keep learning. Keep building."
+
+];
+
+const [quoteIndex, setQuoteIndex] =
+  useState(0);
+
+useEffect(() => {
+
+  const interval = setInterval(() => {
+
+    setQuoteIndex((prev) =>
+
+      (prev + 1) % quotes.length
+
+    );
+
+  }, 3000);
+
+  return () =>
+    clearInterval(interval);
+
+}, [quotes.length]);
+
   /* ===================================
      SEARCH + FILTER
   =================================== */
@@ -1223,27 +1258,27 @@ const updateSnap = async (id) => {
       >
         Logout
       </button>
-      <div className={`mt-6 p-4 rounded-xl text-center shadow-md
+     <div
+  className={`mt-6 text-center transition-all duration-1000
 
     ${
       darkMode
-        ? "bg-gray-700 text-yellow-300"
-        : "bg-blue-50 text-blue-700"
+        ? "text-yellow-300"
+        : "text-blue-700"
     }
   `}
 >
 
-  <p className="text-lg font-semibold">
-    "Do it until you achieve it."
+  <p className="text-2xl font-bold italic tracking-wide">
+    "{quotes[quoteIndex]}"
   </p>
+</div>
 
 </div>
-    </div>
-
  {/* UPLOAD FORM  */}
 
 <div
-  className={` w-full max-w-md mx-auto p-6 rounded-2xl shadow-lg
+  className={` w-full max-w-3xl mx-auto p-6 rounded-2xl shadow-lg
     ${
       darkMode
         ? "bg-gray-800 text-white"
@@ -1253,44 +1288,58 @@ const updateSnap = async (id) => {
 >
       <form
         onSubmit={handleSubmit}
-        className="flex flex-col gap-4"
+        className="flex flex-col gap-5"
       >
- <div className="bg-gray-800 p-4 rounded-xl text-sm text-gray-300 space-y-3">
+ <div
+  className={`rounded-2xl p-6 shadow-lg space-y-5
+    ${
+      darkMode
+        ? "bg-gradient-to-br from-gray-800 to-gray-900 text-gray-200"
+        : "bg-gradient-to-br from-blue-50 to-white text-gray-700"
+    }
+  `}
+>
 
-  <h3 className="text-white font-semibold text-lg">
+  <h3 className="text-2xl font-bold text-center text-blue-500 animate-pulse">
     🚀 How SnapStudy Works
   </h3>
 
-  <div>
-    🎥 <span className="font-semibold text-white">
-      Save Lectures
-    </span>
-    <br />
-    Add title + YouTube link + subject to instantly revisit lectures later.
-  </div>
+  <div className="space-y-4 text-sm md:text-base leading-7">
 
-  <div>
-    ⏱️ <span className="font-semibold text-white">
-      Resume from Timestamp
-    </span>
-    <br />
-    Add URL + timestamps like 52:14 to continue exactly where you stopped.
-  </div>
+    <div className="border-l-4 border-blue-500 pl-4 hover:scale-105 transition duration-300">
+      🎥 <span className="font-bold">
+        Save Lectures
+      </span>
+      <br />
+      Add title + YouTube link + subject to instantly revisit lectures later.
+      Add channel name for more accurate lecture matching.
+    </div>
 
-  <div>
-    🖼️ <span className="font-semibold text-white">
-      Smart OCR Detection
-    </span>
-    <br />
-    Upload topic screenshots — it detects topics open yt videos automatically.
-  </div>
+    <div className="border-l-4 border-green-500 pl-4 hover:scale-105 transition duration-300">
+      ⏱️ <span className="font-bold">
+        Resume from Timestamp
+      </span>
+      <br />
+      Add timestamps like 52:14 and continue exactly where you stopped watching.
+    </div>
 
-  <div>
-    📝 <span className="font-semibold text-white">
-      Quick Revision
-    </span>
-    <br />
-    Save formulas,revision points or anything you find important.
+    <div className="border-l-4 border-yellow-500 pl-4 hover:scale-105 transition duration-300">
+      🖼️ <span className="font-bold">
+        Smart OCR Detection
+      </span>
+      <br />
+      Upload screenshots/slides.
+      SnapStudy automatically detects topics and suggests YouTube lectures.
+    </div>
+
+    <div className="border-l-4 border-pink-500 pl-4 hover:scale-105 transition duration-300">
+      📝 <span className="font-bold">
+        Quick Revision Notes
+      </span>
+      <br />
+      Save formulas, concepts, revision points and important learning notes.
+    </div>
+
   </div>
 
 </div>
