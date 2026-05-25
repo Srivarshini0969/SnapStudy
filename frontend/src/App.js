@@ -793,8 +793,8 @@ if (!category) {
 
   return;
 }
-  const formData =
-    new FormData();
+const hasImage = !!image;
+  const formData = new FormData();
   formData.append(
     "title",
     title
@@ -839,16 +839,20 @@ if (!category) {
   );
 
   await axios.post(
-    `${process.env.REACT_APP_API_URL}/api/snaps`,
-    formData,
-    {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem("token")}`,
+  `${process.env.REACT_APP_API_URL}/api/snaps`,
+  formData,
+  {
+    headers: {
+      Authorization:
+        `Bearer ${localStorage.getItem("token")}`,
+
+      ...(hasImage && {
         "Content-Type":
           "multipart/form-data"
-      }
+      })
     }
-  );
+  }
+);
 
   toast.dismiss();
 
