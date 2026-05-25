@@ -45,7 +45,7 @@ Deployment:
 ![Dashboard](./screenshots/Screenshot%202026-05-25%20204206.png)
 
 ### Mobile UI
-![Mobile UI](./screenshots/Screenshot%202026-05-25%20204145.png)
+![Mobile UI](./screenshots/Screenshot%202026-05-25%20220120.png)
 
 ### OCR Detection
 ![OCR](./screenshots/Screenshot%202026-05-25%20204338.png)
