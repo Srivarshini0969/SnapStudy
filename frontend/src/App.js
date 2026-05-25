@@ -280,6 +280,7 @@ useEffect(() => {
 
     }, 1000);
 
+
   return () =>
     clearInterval(timer);
 
@@ -782,7 +783,7 @@ if (
 ) {
 
   toast.error(
-    "Add YouTube link, notes, or screenshot"
+    "Add notes, or screenshot"
   );
 
   return;
@@ -1922,6 +1923,7 @@ className="bg-blue-500 text-white px-4 py-2 rounded-lg"
       const searchQuery =
 
         `${snap.title || ""}
+         ${snap.channelName || ""}
          ${snap.category || ""}
          lecture`;
 
