@@ -42,13 +42,13 @@ Deployment:
  ## Screenshots
 
 ### Dashboard
-![Dashboard](./screenshots/dashboard.png)
+![Dashboard](./screenshots/Screenshot%202026-05-25%20204206.png)
 
 ### Mobile UI
-![Mobile UI](./screenshots/mobile-ui.png)
+![Mobile UI](./screenshots/Screenshot%202026-05-25%20204145.png)
 
 ### OCR Detection
-![OCR](./screenshots/ocr-upload.png)
+![OCR](./screenshots/Screenshot%202026-05-25%20204241.png)
 
 ### Continue Watching
-![Continue](./screenshots/continue-watch.png)
+![Continue](./screenshots/Screenshot%202026-05-25%20204338.png)
