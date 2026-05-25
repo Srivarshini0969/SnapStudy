@@ -1255,41 +1255,45 @@ const updateSnap = async (id) => {
         onSubmit={handleSubmit}
         className="flex flex-col gap-4"
       >
- <p className="text-sm text-gray-400 leading-6">
+ <div className="bg-gray-800 p-4 rounded-xl text-sm text-gray-300 space-y-3">
 
-  Add:
-  Title + YouTube Link + Subject
-  = Opens your exact lecture instantly without searching again.
-  If you add Channel Name too, SnapStudy tries to open topic-related lectures from that specific channel.
+  <h3 className="text-white font-semibold text-lg">
+    🚀 How SnapStudy Works
+  </h3>
 
-  <br />
-  <br />
+  <div>
+    🎥 <span className="font-semibold text-white">
+      Save Lectures
+    </span>
+    <br />
+    Add title + YouTube link + subject to instantly revisit lectures later.
+  </div>
 
-  Add:
-  Title + YouTube Link + Timestamp
-  = Resume directly from where you stopped watching.
+  <div>
+    ⏱️ <span className="font-semibold text-white">
+      Resume from Timestamp
+    </span>
+    <br />
+    Add URL + timestamps like 52:14 to continue exactly where you stopped.
+  </div>
 
-  <br />
-  <br />
+  <div>
+    🖼️ <span className="font-semibold text-white">
+      Smart OCR Detection
+    </span>
+    <br />
+    Upload topic screenshots — it detects topics open yt videos automatically.
+  </div>
 
-  Add:
-  Screenshot/Image
-  = related to subjects.
-   OCR detects the topic automatically and suggests related YouTube lectures.
+  <div>
+    📝 <span className="font-semibold text-white">
+      Quick Revision
+    </span>
+    <br />
+    Save formulas,revision points or anything you find important.
+  </div>
 
-  <br />
-  <br />
-
-  Add:
-  Notes
-  = Save quick revision points, formulas or anything you find important from the lecture.
-
-  <br />
-  <br />
-
-  Better inputs help SnapStudy organize, track, and recommend your study content more accurately.
-
-</p>
+</div>
         <input
           type="text"
           placeholder="Topic title"
