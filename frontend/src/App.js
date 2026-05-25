@@ -142,7 +142,7 @@ const fetchSnaps = async () => {
         {
           headers: {
             Authorization:
-              token
+              `Bearer ${token}`
           }
         }
 
@@ -169,14 +169,14 @@ const watchSnap = async (snap) => {
 
     await axios.put(
 
-      `${process.env.REACT_APP_API_URL}/api/snaps/view/${snap.id}`,
+      `${process.env.REACT_APP_API_URL}/api/snaps/view/${snap._id}`,
 
       {},
 
       {
         headers: {
           Authorization:
-            localStorage.getItem("token")
+            `Bearer ${localStorage.getItem("token")}`
         }
       }
 
@@ -783,8 +783,7 @@ const handleSubmit = async (e) => {
     formData,
     {
       headers: {
-        Authorization:
-          localStorage.getItem("token"),
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
         "Content-Type":
           "multipart/form-data"
       }
@@ -858,7 +857,7 @@ const updateSnap = async (id) => {
       editForm,
       {
         headers: {
-          Authorization: localStorage.getItem("token")
+          Authorization: `Bearer ${localStorage.getItem("token")}`
         }
       }
     );
@@ -884,8 +883,7 @@ const updateSnap = async (id) => {
       { status },
       {
         headers: {
-          Authorization:
-            localStorage.getItem("token")
+          Authorization: `Bearer ${localStorage.getItem("token")}`
         }
       }
     );
@@ -911,8 +909,7 @@ const updateSnap = async (id) => {
     await axios.delete(`${process.env.REACT_APP_API_URL}/api/snaps/${id}`,
   {
     headers: {
-      Authorization:
-        localStorage.getItem("token")
+      Authorization: `Bearer ${localStorage.getItem("token")}`
     }
   }
 );

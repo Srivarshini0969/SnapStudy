@@ -88,19 +88,7 @@ mongoose.connect(process.env.MONGO_URI, {
 
 const JWT_SECRET =
   process.env.JWT_SECRET;
-
-cloudinary.config({
-
-  cloud_name:
-    process.env.CLOUDINARY_CLOUD_NAME,
-
-  api_key:
-    process.env.CLOUDINARY_API_KEY,
-
-  api_secret:
-    process.env.CLOUDINARY_API_SECRET
-
-});
+ 
 
 const storage =
   new CloudinaryStorage({
@@ -489,9 +477,7 @@ app.get( "/api/snaps",
         snaps.map((snap) => {
 
           return {
-
-            id: snap._id,
-
+             
             ...snap._doc,
 
             watchLink:
@@ -552,6 +538,25 @@ app.post("/api/snaps",
         channelName
       } = req.body;
 
+      if (!title || !category) {
+
+  return res.status(400).json({
+
+    message: "Title and subject required"
+
+  });
+
+}
+
+if (!req.file && !videoUrl && !note) {
+
+  return res.status(400).json({
+
+    message: "Add image, video link, or notes"
+
+  });
+
+}
       const newSnap =
         new Snap({
           userId: req.user.id,
