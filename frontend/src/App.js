@@ -776,14 +776,19 @@ if (!category && !image) {
   return;
 }
 
-if (
-  !videoUrl &&
-  !note &&
-  !image
-) {
+if (!title.trim()) {
 
   toast.error(
-    "Add notes, or screenshot"
+    "Topic title required"
+  );
+
+  return;
+}
+
+if (!category) {
+
+  toast.error(
+    "Please select subject"
   );
 
   return;
