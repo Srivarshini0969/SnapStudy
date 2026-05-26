@@ -449,7 +449,7 @@ const handleAuth = async (e) => {
 
           };
 const emailRegex =
-  /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+/^[a-zA-Z0-9._%+-]{4,}@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
 if (!emailRegex.test(authEmail)) {
 
@@ -468,6 +468,7 @@ if (authPassword.length < 6) {
 
   return;
 }
+
   const response = await axios.post(
   `${process.env.REACT_APP_API_URL}/api/auth/${endpoint}`,
   payload
