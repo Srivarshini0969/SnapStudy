@@ -216,11 +216,21 @@ app.post(
     try {
 
       const {
-        name,
-        email,
-        password
+        name, email,password
       } = req.body;
+const emailRegex =
+  /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+if (!emailRegex.test(email)) {
+
+  return res.status(400).json({
+
+    message:
+      "Invalid email format"
+
+  });
+
+}
       const existingUser =
         await User.findOne({
           email
@@ -408,7 +418,16 @@ app.post(
         email,
         newPassword
       } = req.body;
+if (newPassword.length < 6) {
 
+  return res.status(400).json({
+
+    message:
+      "Password too short"
+
+  });
+
+}
       const user =
         await User.findOne({
           email

@@ -448,11 +448,31 @@ const handleAuth = async (e) => {
             password: authPassword
 
           };
+const emailRegex =
+  /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+if (!emailRegex.test(authEmail)) {
+
+  toast.error(
+    "Enter valid email"
+  );
+
+  return;
+}
+
+if (authPassword.length < 6) {
+
+  toast.error(
+    "Password must be at least 6 characters"
+  );
+
+  return;
+}
   const response = await axios.post(
   `${process.env.REACT_APP_API_URL}/api/auth/${endpoint}`,
   payload
 );
+
 
     /*----------------------------------------
       LOGIN SUCCESS
