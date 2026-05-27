@@ -1,4 +1,15 @@
 require("dotenv").config();
+const nodemailer = require("nodemailer");
+const crypto = require("crypto");
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS
+  }
+}
+);
+
 
 const express = require("express");
 const mongoose = require("mongoose");
@@ -250,7 +261,7 @@ if (name.trim().length < 3) {
 
 }
 const emailRegex =
- /^[a-zA-Z0-9._%+-]+@(gmail|yahoo|outlook)\.com$/;
+ /^[a-zA-Z0-9._%+-]{4,}@(gmail|yahoo|outlook)\.com$/;
 
 if (!emailRegex.test(email)) {
 
@@ -440,74 +451,169 @@ app.post(
 =================================== */
 
 app.post(
-  "/api/auth/forgot-password",
-  async (req, res) => {
+"/api/auth/forgot-password",
+async (req, res) => {
 
-    try {
+  try {
 
-      const {
-        email,
-        newPassword
-      } = req.body;
-if (newPassword.length < 6) {
+    const { email } =
+      req.body;
 
-  return res.status(400).json({
+    const user =
+      await User.findOne({
+        email
+      });
 
-    message:
-      "Password too short"
+    if (!user) {
 
-  });
-
-}
-      const user =
-        await User.findOne({
-          email
-        });
-
-      if (!user) {
-
-        return res.status(404).json({
-
+      return res
+        .status(404)
+        .json({
           message:
             "User not found"
-
         });
-
-      }
-
-      const hashedPassword =
-        await bcrypt.hash(
-          newPassword,
-          10
-        );
-
-      user.password =
-        hashedPassword;
-
-      await user.save();
-
-      res.json({
-
-        message:
-          "Password updated successfully"
-
-      });
-
-    } catch (error) {
-
-      console.log(error);
-
-      res.status(500).json({
-
-        message:
-          "Password reset failed"
-
-      });
 
     }
 
+    const resetToken =
+      crypto.randomBytes(32)
+        .toString("hex");
+
+    user.resetPasswordToken =
+      resetToken;
+
+    user.resetPasswordExpires =
+      Date.now() + 3600000;
+
+    await user.save();
+
+    const resetLink =
+`${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
+
+    await transporter.sendMail({
+
+      from:
+        process.env.EMAIL_USER,
+
+      to: user.email,
+
+      subject:
+        "SnapStudy Password Reset",
+
+      html: `
+
+        <h2>Reset Password</h2>
+
+        <p>
+          Click below to reset:
+        </p>
+
+        <a href="${resetLink}">
+          Reset Password
+        </a>
+
+      `
+
+    });
+
+    res.json({
+
+      message:
+        "Reset email sent"
+
+    });
+
+  } catch (error) {
+
+    console.log(error);
+
+    res.status(500).json({
+
+      message:
+        "Email sending failed"
+
+    });
+
   }
-);
+
+});
+
+/* ===================================
+   RESET PASSWORD
+=================================== */
+
+app.post(
+"/api/auth/reset-password/:token",
+async (req, res) => {
+
+  try {
+
+    const { password } =
+      req.body;
+
+    const user =
+      await User.findOne({
+
+        resetPasswordToken:
+          req.params.token,
+
+        resetPasswordExpires:
+          { $gt: Date.now() }
+
+      });
+
+    if (!user) {
+
+      return res
+        .status(400)
+        .json({
+
+          message:
+            "Invalid or expired token"
+
+        });
+
+    }
+
+    const hashedPassword =
+      await bcrypt.hash(
+        password,
+        10
+      );
+
+    user.password =
+      hashedPassword;
+
+    user.resetPasswordToken =
+      undefined;
+
+    user.resetPasswordExpires =
+      undefined;
+
+    await user.save();
+
+    res.json({
+
+      message:
+        "Password reset successful"
+
+    });
+
+  } catch (error) {
+
+    console.log(error);
+
+    res.status(500).json({
+
+      message:
+        "Reset failed"
+
+    });
+
+  }
+
+});
+
 
 /* ===================================
    GET SNAPS

@@ -1,3 +1,5 @@
+import ResetPassword from "./ResetPassword";
+import { Routes, Route } from "react-router-dom";
 import { useState, useEffect } from "react";
 import axios from "axios";
 import toast, { Toaster } from "react-hot-toast";
@@ -51,8 +53,7 @@ const [showForgotPassword, setShowForgotPassword] =
 const [forgotEmail, setForgotEmail] =
   useState("");
 
-const [newPassword, setNewPassword] =
-  useState("");
+
 
   /* ===================================
      DATA STATES
@@ -527,21 +528,19 @@ const handleForgotPassword =
   async (e) => {
     e.preventDefault();
     try {
-     await axios.post(
+await axios.post(
   `${process.env.REACT_APP_API_URL}/api/auth/forgot-password`,
   {
-    email: forgotEmail,
-    newPassword
+    email: forgotEmail
   }
 );
 
-      toast.success(
-        "Password updated"
-      );
+toast.success(
+  "Reset link sent to your email"
+);
 
       setShowForgotPassword(false);
       setForgotEmail("");
-      setNewPassword("");
     } catch (error) {
       console.log(error);
       toast.error(
@@ -1008,6 +1007,13 @@ const updateSnap = async (id) => {
     }
   };
   return (
+
+<Routes>
+
+<Route
+  path="/"
+  element={
+
 <>
       <Toaster position="top-right" />
       <div className={`min-h-screen px-6 py-10 transition-all duration-300
@@ -1099,23 +1105,7 @@ const updateSnap = async (id) => {
 `}
       />
 
-      <input
-        type="password"
-        placeholder="Enter New Password"
-        value={newPassword}
-        onChange={(e) =>
-          setNewPassword(
-            e.target.value
-          )
-        }
-        className={`border p-3 rounded-lg
-  ${
-    darkMode
-      ? "bg-gray-700 text-white"
-      : "bg-white text-black"
-  }
-`}
-      />
+    
 
       <button
         type="submit"
@@ -2058,9 +2048,19 @@ className="bg-blue-500 text-white px-4 py-2 rounded-lg"
 
         )}
 
-    </div>
+     </div>
 
     </>
+
+}
+/>
+
+<Route
+  path="/reset-password/:token"
+  element={<ResetPassword />}
+/>
+
+</Routes>
 
   );
 
