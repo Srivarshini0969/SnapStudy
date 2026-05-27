@@ -1,14 +1,15 @@
 require("dotenv").config();
 const nodemailer = require("nodemailer");
 const crypto = require("crypto");
+const User = require("./models/User");
 const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS
   }
-}
-);
+});
+
 
 
 const express = require("express");
@@ -26,7 +27,7 @@ const cors = require("cors");
 const authMiddleware =
   require("./middleware/authMiddleware");
 const Snap = require("./models/Snap");
-const User = require("./models/User");
+
 
 const app = express();
 
