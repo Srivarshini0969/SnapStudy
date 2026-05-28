@@ -1059,11 +1059,9 @@ const updateSnap = async (id) => {
 
    {/* AUTH / USER SECTION */}
 
-<div className="max-w-7xl mx-auto mb-10 px-4">
-  {
+<div className="w-full max-w-7xl mx-auto mb-10 px-4">  {
     !user ? (
-     <div className={`p-6 rounded-2xl shadow-lg
-
+<div className={`w-full max-w-3xl mx-auto p-6 rounded-2xl shadow-lg
     ${
       darkMode
         ? "bg-gray-800 text-white"
