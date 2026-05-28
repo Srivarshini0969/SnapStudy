@@ -447,6 +447,7 @@ app.post(
   }
 );
 
+
 /* ===================================
    FORGOT PASSWORD
 =================================== */
@@ -457,8 +458,7 @@ async (req, res) => {
 
   try {
 
-    const { email } =
-      req.body;
+    const { email } = req.body;
 
     const user =
       await User.findOne({
@@ -505,9 +505,7 @@ async (req, res) => {
 
         <h2>Reset Password</h2>
 
-        <p>
-          Click below to reset:
-        </p>
+        <p>Click below:</p>
 
         <a href="${resetLink}">
           Reset Password

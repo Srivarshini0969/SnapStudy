@@ -529,7 +529,7 @@ const handleForgotPassword =
     e.preventDefault();
     try {
 await axios.post(
-  `${process.env.REACT_APP_API_URL}/api/auth/forgot-password`,
+`${process.env.REACT_APP_API_URL}/api/auth/forgot-password`,
   {
     email: forgotEmail
   }
