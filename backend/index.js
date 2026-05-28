@@ -20,21 +20,6 @@ const transporter = nodemailer.createTransport({
 
 });
 
-transporter.verify((error, success) => {
-
-  if (error) {
-
-    console.log("EMAIL ERROR:");
-    console.log(error);
-
-  } else {
-
-    console.log("EMAIL SERVER READY");
-
-  }
-
-});
-
 const express = require("express");
 const mongoose = require("mongoose");
 const multer = require("multer");
@@ -517,7 +502,7 @@ app.post(
 
       const resetLink =
 `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
-
+console.log("Sending reset email...");
       await transporter.sendMail({
 
         from: process.env.EMAIL_USER,
@@ -535,6 +520,7 @@ app.post(
         `
 
       });
+      console.log("Reset email sent successfully");
 
       res.json({
         message: "Reset email sent"
