@@ -5,8 +5,9 @@ const User = require("./models/User");
 const transporter = nodemailer.createTransport({
 
   host: "smtp.gmail.com",
-  port: 465,
-  secure: true,
+  port: 587,
+  secure: false,
+  requireTLS: true,
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS
@@ -455,91 +456,82 @@ app.post(
 /* ===================================
    FORGOT PASSWORD
 =================================== */
-
 app.post(
-"/api/auth/forgot-password",
-async (req, res) => {
+  "/api/auth/forgot-password",
+  async (req, res) => {
 
-  try {
+    try {
 
-    const { email } = req.body;
+      const email = req.body.email;
 
-    const user =
-      await User.findOne({
+      if (!email) {
+
+        return res.status(400).json({
+          message: "Email required"
+        });
+
+      }
+
+      const user = await User.findOne({
         email
       });
 
-    if (!user) {
+      if (!user) {
 
-      return res
-        .status(404)
-        .json({
-          message:
-            "User not found"
+        return res.status(404).json({
+          message: "User not found"
         });
+
+      }
+
+      const resetToken =
+        crypto.randomBytes(32).toString("hex");
+
+      user.resetPasswordToken =
+        resetToken;
+
+      user.resetPasswordExpires =
+        Date.now() + 3600000;
+
+      await user.save();
+
+      const resetLink =
+`${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
+
+      await transporter.sendMail({
+
+        from: process.env.EMAIL_USER,
+
+        to: user.email,
+
+        subject: "SnapStudy Password Reset",
+
+        html: `
+          <h2>Reset Password</h2>
+
+          <a href="${resetLink}">
+            Reset Password
+          </a>
+        `
+
+      });
+
+      res.json({
+        message: "Reset email sent"
+      });
+
+    } catch (error) {
+
+      console.log(error);
+
+      res.status(500).json({
+        message: "Email sending failed"
+      });
 
     }
 
-    const resetToken =
-      crypto.randomBytes(32)
-        .toString("hex");
-
-    user.resetPasswordToken =
-      resetToken;
-
-    user.resetPasswordExpires =
-      Date.now() + 3600000;
-
-    await user.save();
-
-    const resetLink =
-`${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
-
-    await transporter.sendMail({
-
-      from:
-        process.env.EMAIL_USER,
-
-      to: user.email,
-
-      subject:
-        "SnapStudy Password Reset",
-
-      html: `
-
-        <h2>Reset Password</h2>
-
-        <p>Click below:</p>
-
-        <a href="${resetLink}">
-          Reset Password
-        </a>
-
-      `
-
-    });
-
-    res.json({
-
-      message:
-        "Reset email sent"
-
-    });
-
-  } catch (error) {
-
-    console.log(error);
-
-    res.status(500).json({
-
-      message:
-        "Email sending failed"
-
-    });
-
   }
-
-});
+);
 
 /* ===================================
    RESET PASSWORD
