@@ -86,8 +86,7 @@ app.get("/test-mail", async (req, res) => {
 
     await transporter.sendMail({
 
-     from: '"SnapStudy" <srivarshiniyamala56@gmail.com>',
-
+      from: "SnapStudy <srivarshiniyamala56@gmail.com>",
       to: "srivarshiniyamala56@gmail.com",
 
       subject: "Test Mail",
