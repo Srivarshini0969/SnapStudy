@@ -4,27 +4,35 @@ const crypto = require("crypto");
 const User = require("./models/User");
 const transporter = nodemailer.createTransport({
 
-  host: "smtp.gmail.com",
+  host: "smtp-relay.brevo.com",
+
   port: 587,
+
   secure: false,
-  
+
   auth: {
+
     user: process.env.EMAIL_USER,
+
     pass: process.env.EMAIL_PASS
-  },
-  connectionTimeout: 10000,
-  greetingTimeout: 10000,
-  socketTimeout: 10000
+
+  }
+
 });
-transporter.verify(function(error, success) {
+
+transporter.verify((error, success) => {
 
   if (error) {
+
     console.log("EMAIL ERROR:");
     console.log(error);
 
   } else {
+
     console.log("EMAIL SERVER READY");
+
   }
+
 });
 
 const express = require("express");
