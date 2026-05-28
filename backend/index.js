@@ -10,8 +10,6 @@ const transporter = nodemailer.createTransport({
   }
 });
 
-
-
 const express = require("express");
 const mongoose = require("mongoose");
 const multer = require("multer");
@@ -68,7 +66,9 @@ mongoose.connect(process.env.MONGO_URI, {
 .then(() => {
 
   console.log("MongoDB Connected");
-
+app.get("/test", (req, res) => {
+  res.send("Backend working");
+});
   app.listen(
     process.env.PORT,
     () => {
