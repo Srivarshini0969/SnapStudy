@@ -11,8 +11,20 @@ const transporter = nodemailer.createTransport({
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS
-  }
+  },
+  connectionTimeout: 10000,
+  greetingTimeout: 10000,
+  socketTimeout: 10000
+});
+transporter.verify(function(error, success) {
 
+  if (error) {
+    console.log("EMAIL ERROR:");
+    console.log(error);
+
+  } else {
+    console.log("EMAIL SERVER READY");
+  }
 });
 
 const express = require("express");
