@@ -79,6 +79,35 @@ mongoose.connect(process.env.MONGO_URI, {
 app.get("/test", (req, res) => {
   res.send("Backend working");
 });
+
+app.get("/test-mail", async (req, res) => {
+
+  try {
+
+    await transporter.sendMail({
+
+     from: '"SnapStudy" <srivarshiniyamala56@gmail.com>',
+
+      to: "srivarshiniyamala56@gmail.com",
+
+      subject: "Test Mail",
+
+      html: "<h1>Brevo working</h1>"
+
+    });
+
+    res.send("Mail sent");
+
+  } catch (error) {
+
+    console.log(error);
+
+    res.send(error);
+
+  }
+
+});
+
   app.listen(
     process.env.PORT,
     () => {
@@ -505,7 +534,7 @@ app.post(
 console.log("Sending reset email...");
       await transporter.sendMail({
 
-        from: process.env.EMAIL_USER,
+        from: '"SnapStudy" <srivarshiniyamala56@gmail.com>',
 
         to: user.email,
 
