@@ -1,16 +1,9 @@
 require("dotenv").config();
-const nodemailer = require("nodemailer");
+
 const crypto = require("crypto");
 const User = require("./models/User");
-const transporter = nodemailer.createTransport({
-  host: "smtp.resend.com",
-  port: 465,
-  secure: true,
-  auth: {
-    user: "resend",
-    pass: process.env.EMAIL_PASS
-  }
-});
+const { Resend } = require("resend");
+const resend = new Resend(process.env.EMAIL_PASS);
 
 const express = require("express");
 const mongoose = require("mongoose");
@@ -76,16 +69,12 @@ app.get("/test-mail", async (req, res) => {
 
   try {
 
-    await transporter.sendMail({
-
-      from: "SnapStudy <srivarshiniyamala56@gmail.com>",
-      to: "srivarshiniyamala56@gmail.com",
-
-      subject: "Test Mail",
-
-      html: "<h1>Brevo working</h1>"
-
-    });
+    await resend.emails.send({
+  from: "onboarding@resend.dev",
+  to: "srivarshiniyamala56@gmail.com",
+  subject: "Test Mail",
+  html: "<h1>Resend working</h1>"
+});
 
     res.send("Mail sent");
 
@@ -523,23 +512,13 @@ app.post(
       const resetLink =
 `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
 console.log("Sending reset email...");
-      await transporter.sendMail({
-
-        from: '"SnapStudy" <srivarshiniyamala56@gmail.com>',
-
-        to: user.email,
-
-        subject: "SnapStudy Password Reset",
-
-        html: `
-          <h2>Reset Password</h2>
-
-          <a href="${resetLink}">
-            Reset Password
-          </a>
-        `
-
-      });
+      
+await resend.emails.send({
+  from: "onboarding@resend.dev",
+  to: user.email,
+  subject: "SnapStudy Password Reset",
+  html: `<h2>Reset Password</h2><a href="${resetLink}">Reset Password</a>`
+});
       console.log("Reset email sent successfully");
 
       res.json({
