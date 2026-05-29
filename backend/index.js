@@ -474,27 +474,27 @@ app.post(
 
     try {
 
-      const email = req.body.email;
+    const { email, name } = req.body;
 
-      if (!email) {
+if (!email || !name) {
+  return res.status(400).json({
+    message: "Email and name required"
+  });
+}
 
-        return res.status(400).json({
-          message: "Email required"
-        });
+const user = await User.findOne({ email });
 
-      }
+if (!user) {
+  return res.status(404).json({
+    message: "User not found"
+  });
+}
 
-      const user = await User.findOne({
-        email
-      });
-
-      if (!user) {
-
-        return res.status(404).json({
-          message: "User not found"
-        });
-
-      }
+if (user.name.toLowerCase().trim() !== name.toLowerCase().trim()) {
+  return res.status(400).json({
+    message: "Name doesn't match our records"
+  });
+}
 
       const resetToken =
         crypto.randomBytes(32).toString("hex");

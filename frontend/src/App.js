@@ -5,6 +5,7 @@ import axios from "axios";
 import toast, { Toaster } from "react-hot-toast";
 import Tesseract from "tesseract.js";
 import SearchYoutube from "youtube-search-api";
+
 function App() {
 
   /* ===================================
@@ -14,6 +15,7 @@ function App() {
   const [title, setTitle] = useState("");
   const [videoUrl, setVideoUrl] = useState("");
   const [timestamp, setTimestamp] = useState("");
+  const [forgotName, setForgotName] = useState("");
   const [image, setImage] = useState(null);
 
   const [note, setNote] = useState("");
@@ -52,8 +54,6 @@ const [showForgotPassword, setShowForgotPassword] =
 
 const [forgotEmail, setForgotEmail] =
   useState("");
-
-
 
   /* ===================================
      DATA STATES
@@ -528,11 +528,14 @@ const handleForgotPassword = async (e) => {
   try {
     const response = await axios.post(
       `${process.env.REACT_APP_API_URL}/api/auth/forgot-password`,
-      { email: forgotEmail }
+      { email: forgotEmail,
+        name: forgotName
+       }
     );
     setResetLink(response.data.resetLink);
     toast.success("Reset link generated!");
     setForgotEmail("");
+    setForgotName("");
   } catch (error) {
     console.log(error);
     toast.error("Reset failed");
@@ -1074,7 +1077,17 @@ const updateSnap = async (id) => {
       onSubmit={handleForgotPassword}
       className="flex flex-col gap-4"
     >
-
+<input
+  type="text"
+  placeholder="Enter your registered name"
+  value={forgotName}
+  onChange={(e) =>
+    setForgotName(e.target.value)
+  }
+  className={`border p-3 rounded-lg
+    ${darkMode ? "bg-gray-700 text-white" : "bg-white text-black"}
+  `}
+/>
       <input
         type="email"
         placeholder="Enter Email"
