@@ -522,8 +522,9 @@ await resend.emails.send({
       console.log("Reset email sent successfully");
 
       res.json({
-        message: "Reset email sent"
-      });
+  message: "Reset email sent",
+  resetLink: `${process.env.FRONTEND_URL}/reset-password/${resetToken}`
+});
 
     } catch (error) {
 

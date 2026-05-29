@@ -24,7 +24,7 @@ function App() {
    
   const [channelName, setChannelName] =
     useState("");
-
+  const [resetLink, setResetLink] = useState("");
     /* ===================================
    AUTH STATES
 =================================== */
@@ -523,31 +523,21 @@ if (authPassword.length < 6) {
 /* ===================================
    FORGOT PASSWORD
 =================================== */
-
-const handleForgotPassword =
-  async (e) => {
-    e.preventDefault();
-    try {
-await axios.post(
-`${process.env.REACT_APP_API_URL}/api/auth/forgot-password`,
-  {
-    email: forgotEmail
+const handleForgotPassword = async (e) => {
+  e.preventDefault();
+  try {
+    const response = await axios.post(
+      `${process.env.REACT_APP_API_URL}/api/auth/forgot-password`,
+      { email: forgotEmail }
+    );
+    setResetLink(response.data.resetLink);
+    toast.success("Reset link generated!");
+    setForgotEmail("");
+  } catch (error) {
+    console.log(error);
+    toast.error("Reset failed");
   }
-);
-
-toast.success(
-  "Reset link sent to your email"
-);
-
-      setShowForgotPassword(false);
-      setForgotEmail("");
-    } catch (error) {
-      console.log(error);
-      toast.error(
-        "Reset failed"
-      );
-    }
-  };
+};
 
 /* ===================================
    LOGOUT
@@ -1111,7 +1101,15 @@ const updateSnap = async (id) => {
       >
         Reset Password
       </button>
-
+      
+{resetLink && (
+  
+    <a href={resetLink}
+    className="bg-green-500 text-white py-3 rounded-lg text-center block"
+  >
+    Click here to Reset Password
+  </a>
+)}
       <button
         type="button"
         onClick={() =>
