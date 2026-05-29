@@ -3,23 +3,12 @@ const nodemailer = require("nodemailer");
 const crypto = require("crypto");
 const User = require("./models/User");
 const transporter = nodemailer.createTransport({
-
-  host: "smtp-relay.brevo.com",
-
-  port: 587,
-
-  secure: false,
-
+  service: 'gmail',
   auth: {
-
     user: process.env.EMAIL_USER,
-
     pass: process.env.EMAIL_PASS
-
-  },
-
+  }
 });
-
 const express = require("express");
 const mongoose = require("mongoose");
 const multer = require("multer");
