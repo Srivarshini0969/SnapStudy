@@ -3,12 +3,15 @@ const nodemailer = require("nodemailer");
 const crypto = require("crypto");
 const User = require("./models/User");
 const transporter = nodemailer.createTransport({
-  service: 'gmail',
+  host: "smtp.resend.com",
+  port: 587,
+  secure: false,
   auth: {
-    user: process.env.EMAIL_USER,
+    user: "resend",
     pass: process.env.EMAIL_PASS
   }
 });
+
 const express = require("express");
 const mongoose = require("mongoose");
 const multer = require("multer");
