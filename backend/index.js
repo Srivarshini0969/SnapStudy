@@ -280,9 +280,7 @@ if (name.trim().length < 3) {
   });
 
 }
-const emailRegex =
- /^[a-zA-Z0-9._%+-]{4,}@(gmail|yahoo|outlook)\.com$/;
-
+const emailRegex = /^[a-zA-Z0-9._%+-]{4,}@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 if (!emailRegex.test(email)) {
 
   return res.status(400).json({
