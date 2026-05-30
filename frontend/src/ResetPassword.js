@@ -1,11 +1,14 @@
 import { useState } from "react";
 import axios from "axios";
-import { useParams } from "react-router-dom";
+import { useNavigate,
+  useParams
+} from "react-router-dom";
 import toast from "react-hot-toast";
 
 export default function ResetPassword() {
 
   const { token } = useParams();
+  const navigate = useNavigate();
 
   const [password, setPassword] =
     useState("");
@@ -22,9 +25,13 @@ await axios.post(
   password
 }
 );
-        toast.success(
-          "Password reset successful"
-        );
+       toast.success(
+"Password changed successfully! Please login with your new password."
+);
+
+setTimeout(() => {
+  navigate("/");
+}, 2000);
 
       } 
       catch (error) {
