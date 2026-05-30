@@ -1087,12 +1087,9 @@ const updateSnap = async (id) => {
 <input
   type="text"
   placeholder="Enter your secret name"
-  value={registerSecretName}
-
+value={forgotSecretName}
 onChange={(e) =>
-  setRegisterSecretName(
-    e.target.value
-  )
+  setForgotSecretName(e.target.value)
 }
   className={`border p-3 rounded-lg
     ${darkMode ? "bg-gray-700 text-white" : "bg-white text-black"}
@@ -1179,12 +1176,9 @@ onChange={(e) =>
     <input
       type="text"
       placeholder="Enter Secret Name"
-     value={forgotSecretName}
-
+value={registerSecretName}
 onChange={(e) =>
-  setForgotSecretName(
-    e.target.value
-  )
+  setRegisterSecretName(e.target.value)
 }
       className={`border p-3 rounded-lg
       ${
