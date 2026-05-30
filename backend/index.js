@@ -247,7 +247,7 @@ app.post(
     try {
 
       const {
-        name, email,password
+        name, email,password,secretName
       } = req.body;
       if (name.trim().length < 3) {
 
@@ -313,14 +313,12 @@ if (!emailRegex.test(email)) {
           10
         );
 
-      const newUser =
-        new User({
+      const newUser =new User({
 
           name,
           email,
-
-          password:
-            hashedPassword
+          password:hashedPassword,
+          secretName
 
         });
 
@@ -474,11 +472,11 @@ app.post(
 
     try {
 
-    const { email, name } = req.body;
+    const { email, secretName } = req.body;
 
-if (!email || !name) {
+if (!email || !secretName) {
   return res.status(400).json({
-    message: "Email and name required"
+    message: "Email and secret name required"
   });
 }
 
@@ -490,9 +488,12 @@ if (!user) {
   });
 }
 
-if (user.name.toLowerCase().trim() !== name.toLowerCase().trim()) {
+if (
+  user.secretName.toLowerCase().trim() !==
+  secretName.toLowerCase().trim()
+) {
   return res.status(400).json({
-    message: "Name doesn't match our records"
+    message: "Secret name doesn't match our records"
   });
 }
 

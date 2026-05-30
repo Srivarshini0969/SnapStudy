@@ -15,7 +15,7 @@ function App() {
   const [title, setTitle] = useState("");
   const [videoUrl, setVideoUrl] = useState("");
   const [timestamp, setTimestamp] = useState("");
-  const [forgotName, setForgotName] = useState("");
+  const [secretName, setSecretName] = useState("");
   const [image, setImage] = useState(null);
 
   const [note, setNote] = useState("");
@@ -446,7 +446,8 @@ const handleAuth = async (e) => {
         : {
             name: authName,
             email: authEmail,
-            password: authPassword
+            password: authPassword,
+            secretName
 
           };
 const emailRegex =
@@ -529,13 +530,13 @@ const handleForgotPassword = async (e) => {
     const response = await axios.post(
       `${process.env.REACT_APP_API_URL}/api/auth/forgot-password`,
       { email: forgotEmail,
-        name: forgotName
+        name: secretName
        }
     );
     setResetLink(response.data.resetLink);
     toast.success("Reset link generated!");
     setForgotEmail("");
-    setForgotName("");
+    setSecretName("");
   } catch (error) {
     console.log(error);
     toast.error("Reset failed");
@@ -1079,10 +1080,10 @@ const updateSnap = async (id) => {
     >
 <input
   type="text"
-  placeholder="Enter your registered name"
-  value={forgotName}
+  placeholder="Enter your secret name"
+  value={secretName}
   onChange={(e) =>
-    setForgotName(e.target.value)
+    setSecretName(e.target.value)
   }
   className={`border p-3 rounded-lg
     ${darkMode ? "bg-gray-700 text-white" : "bg-white text-black"}
@@ -1164,6 +1165,27 @@ const updateSnap = async (id) => {
         )
 
       }
+      {
+  !isLogin && (
+    <input
+      type="text"
+      placeholder="Enter Secret Name"
+      value={secretName}
+      onChange={(e) =>
+        setSecretName(
+          e.target.value
+        )
+      }
+      className={`border p-3 rounded-lg
+      ${
+        darkMode
+          ? "bg-gray-700 text-white"
+          : "bg-white text-black"
+      }
+`}
+    />
+  )
+}
 
       <input
         type="email"
