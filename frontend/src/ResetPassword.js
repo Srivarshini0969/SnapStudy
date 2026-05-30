@@ -26,9 +26,11 @@ await axios.post(
           "Password reset successful"
         );
 
-      } catch {
-
+      } 
+      catch (error) {
+        console.log(error);
         toast.error(
+          error.response?.data?.message ||
           "Reset failed"
         );
 

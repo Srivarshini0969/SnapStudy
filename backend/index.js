@@ -249,6 +249,16 @@ app.post(
       const {
         name, email,password,secretName
       } = req.body;
+      if (!secretName) {
+
+  return res.status(400).json({
+
+    message:
+      "Secret name required"
+
+  });
+
+}
       if (name.trim().length < 3) {
 
   return res.status(400).json({
@@ -312,13 +322,18 @@ if (!emailRegex.test(email)) {
           password,
           10
         );
+        const hashedSecretName =
+  await bcrypt.hash(
+    secretName,
+    10
+  );
 
       const newUser =new User({
 
           name,
           email,
           password:hashedPassword,
-          secretName
+          secretName: hashedSecretName
 
         });
 
@@ -488,13 +503,18 @@ if (!user) {
   });
 }
 
-if (
-  user.secretName.toLowerCase().trim() !==
-  secretName.toLowerCase().trim()
-) {
+const isSecretMatch =
+  await bcrypt.compare(
+    secretName,
+    user.secretName
+  );
+
+if (!isSecretMatch) {
+
   return res.status(400).json({
     message: "Secret name doesn't match our records"
   });
+
 }
 
       const resetToken =

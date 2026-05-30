@@ -15,8 +15,13 @@ function App() {
   const [title, setTitle] = useState("");
   const [videoUrl, setVideoUrl] = useState("");
   const [timestamp, setTimestamp] = useState("");
-  const [secretName, setSecretName] = useState("");
-  const [image, setImage] = useState(null);
+const [registerSecretName,
+  setRegisterSecretName] =
+  useState("");
+
+const [forgotSecretName,
+  setForgotSecretName] =useState("");
+    const [image, setImage] = useState(null);
 
   const [note, setNote] = useState("");
 
@@ -444,12 +449,11 @@ const handleAuth = async (e) => {
             password: authPassword
           }
         : {
-            name: authName,
-            email: authEmail,
-            password: authPassword,
-            secretName
-
-          };
+    name: authName,
+    email: authEmail,
+    password: authPassword,
+    secretName: registerSecretName
+  };
 const emailRegex =
 /^[a-zA-Z0-9._%+-]{4,}@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
@@ -510,6 +514,7 @@ if (authPassword.length < 6) {
     setAuthName("");
     setAuthEmail("");
     setAuthPassword("");
+    setAuthPassword("");
   } catch (error) {
     console.log(
       error.response?.data || error
@@ -529,14 +534,15 @@ const handleForgotPassword = async (e) => {
   try {
     const response = await axios.post(
       `${process.env.REACT_APP_API_URL}/api/auth/forgot-password`,
-      { email: forgotEmail,
-        name: secretName
+      { 
+        email: forgotEmail,
+        secretName: forgotSecretName
        }
     );
     setResetLink(response.data.resetLink);
     toast.success("Reset link generated!");
     setForgotEmail("");
-    setSecretName("");
+    setForgotSecretName("");
   } catch (error) {
     console.log(error);
     toast.error("Reset failed");
@@ -1081,10 +1087,13 @@ const updateSnap = async (id) => {
 <input
   type="text"
   placeholder="Enter your secret name"
-  value={secretName}
-  onChange={(e) =>
-    setSecretName(e.target.value)
-  }
+  value={registerSecretName}
+
+onChange={(e) =>
+  setRegisterSecretName(
+    e.target.value
+  )
+}
   className={`border p-3 rounded-lg
     ${darkMode ? "bg-gray-700 text-white" : "bg-white text-black"}
   `}
@@ -1170,12 +1179,13 @@ const updateSnap = async (id) => {
     <input
       type="text"
       placeholder="Enter Secret Name"
-      value={secretName}
-      onChange={(e) =>
-        setSecretName(
-          e.target.value
-        )
-      }
+     value={forgotSecretName}
+
+onChange={(e) =>
+  setForgotSecretName(
+    e.target.value
+  )
+}
       className={`border p-3 rounded-lg
       ${
         darkMode
