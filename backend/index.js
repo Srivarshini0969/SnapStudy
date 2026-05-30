@@ -502,6 +502,11 @@ if (!user) {
     message: "User not found"
   });
 }
+if (!user.secretName) {
+  return res.status(400).json({
+    message: "This account was created before secret name feature. Please contact support."
+  });
+}
 
 const isSecretMatch =
   await bcrypt.compare(
@@ -510,12 +515,11 @@ const isSecretMatch =
   );
 
 if (!isSecretMatch) {
-
   return res.status(400).json({
     message: "Secret name doesn't match our records"
   });
-
 }
+
 
       const resetToken =
         crypto.randomBytes(32).toString("hex");
