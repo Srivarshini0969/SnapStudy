@@ -370,10 +370,25 @@ const analytics = {
     completed: 0
   },
 
-  Java: {
+  JavaScript: {
     total: 0,
     completed: 0
   },
+
+  Python: {
+  total:0,
+  completed:0
+},
+
+ReactJS: {
+  total:0,
+  completed:0
+},
+
+NodeJS: {
+  total:0,
+  completed:0
+},
 
   DBMS: {
     total: 0,
@@ -385,10 +400,7 @@ const analytics = {
     completed: 0
   },
 
-  "GRAPH THEORY": {
-    total: 0,
-    completed: 0
-  },
+  
 
   "FRONTEND DEVELOPMENT": {
     total: 0,
@@ -787,14 +799,7 @@ const handleSubmit = async (e) => {
   return;
 }
 
-if (!category && !image) {
 
-  toast.error(
-    "Please select subject or upload screenshot for auto-detection"
-  );
-
-  return;
-}
 
 if (!title.trim()) {
 
@@ -805,14 +810,7 @@ if (!title.trim()) {
   return;
 }
 
-if (!category) {
 
-  toast.error(
-    "Please select subject"
-  );
-
-  return;
-}
 const hasImage = !!image;
   const formData = new FormData();
   formData.append(
@@ -835,10 +833,14 @@ const hasImage = !!image;
     note
   );
 
+  if (category) {
+
   formData.append(
     "category",
     category
   );
+
+}
 
   formData.append(
     "channelName",
@@ -1487,7 +1489,7 @@ onChange={(e) =>
 `}
         >
           <option value="">
-            Select Subject *
+            Select Subject (optional)
           </option>
       <option value="DSA">
             DSA
@@ -1495,12 +1497,21 @@ onChange={(e) =>
 <option value="COMPILER DESIGN">
             COMPILER DESIGN
           </option>
-          <option value="Java">
-            Java
+          <option value="JavaScript">
+            JavaScript
           </option>
-<option value="GRAPH THEORY">
-            GRAPH THEORY
-          </option>
+ <option value="Python">
+  Python
+</option>
+
+<option value="ReactJS">
+  ReactJS
+</option>
+
+<option value="NodeJS">
+  NodeJS
+</option>
+
           <option value="DBMS">
             DBMS
           </option>
@@ -1590,10 +1601,12 @@ onChange={(e) =>
          [
               "All",
               "DSA",
-              "Java",
+              "Python",
               "DBMS",
               "OPERATING SYSTEMS",
-              "GRAPH THEORY",
+              "JavaScript",
+              "ReactJS",
+              "NodeJS",
               "COMPUTER NETWORKS",
               "COMPILER DESIGN",
               "FRONTEND DEVELOPMENT",
@@ -1854,18 +1867,23 @@ className="bg-blue-500 text-white px-4 py-2 rounded-lg"
         DSA
       </option>
 
-      <option value="Java">
-        Java
+      <option value="Python">
+        Python
       </option>
 
-      <option value="DBMS">
-        DBMS
+      <option value="JavaScript">
+        JavaScript
       </option>
 
-      <option value="GRAPH THEORY">
-        GRAPH THEORY
+      <option value="ReactJS">
+        ReactJS
       </option>
 
+      <option value="NodeJS">
+        NodeJS
+      </option>
+
+      
       <option value="COMPILER DESIGN">
         COMPILER DESIGN
       </option>
