@@ -718,14 +718,10 @@ app.post("/api/snaps",
         channelName
       } = req.body;
 
-      if (!title || !category) {
-
+      if (!title) {
   return res.status(400).json({
-
-    message: "Title and subject required"
-
+    message: "Title required"
   });
-
 }
 
 if (
