@@ -1509,10 +1509,10 @@ onChange={(e) =>
   Python
 </option>
 <option value="ReactJS">
-  Java
-</option>
-<option value="ReactJS">
   ReactJS
+</option>
+<option value="Java">
+  Java
 </option>
 
 <option value="NodeJS">
@@ -1609,6 +1609,7 @@ onChange={(e) =>
               "All",
               "DSA",
               "Python",
+              "Java",
               "DBMS",
               "OPERATING SYSTEMS",
               "JavaScript",
@@ -1877,9 +1878,11 @@ className="bg-blue-500 text-white px-4 py-2 rounded-lg"
       <option value="Python">
         Python
       </option>
+
        <option value="Java">
         Java
       </option>
+
       <option value="JavaScript">
         JavaScript
       </option>
