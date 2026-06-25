@@ -380,6 +380,11 @@ const analytics = {
   completed:0
 },
 
+Java: {
+  total:0,
+  completed:0
+},
+
 ReactJS: {
   total:0,
   completed:0
@@ -1503,7 +1508,9 @@ onChange={(e) =>
  <option value="Python">
   Python
 </option>
-
+<option value="ReactJS">
+  Java
+</option>
 <option value="ReactJS">
   ReactJS
 </option>
@@ -1870,7 +1877,9 @@ className="bg-blue-500 text-white px-4 py-2 rounded-lg"
       <option value="Python">
         Python
       </option>
-
+       <option value="Java">
+        Java
+      </option>
       <option value="JavaScript">
         JavaScript
       </option>
