@@ -1020,8 +1020,13 @@ const updateSnap = async (id) => {
 <Route
   path="/"
   element={
-
 <>
+  <div className="background-blur">
+  <div className="blur-circle blur1"></div>
+  <div className="blur-circle blur2"></div>
+  <div className="blur-circle blur3"></div>
+</div>
+
       <Toaster position="top-right" />
       <div className={`min-h-screen px-6 py-10 transition-all duration-300
     ${
