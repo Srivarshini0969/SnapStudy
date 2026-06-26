@@ -1305,42 +1305,132 @@ onChange={(e) =>
     }
   `}
 >
-      <h2 className="text-2xl font-bold mb-2">
-        Welcome,
-        {" "}
-        {user.name}
-      </h2>
-      <p className={`mb-4
+<div className="flex flex-col md:flex-row justify-between items-center">
 
-  ${
-    darkMode
-      ? "text-gray-300"
-      : "text-gray-600"
-  }
-`}>
+  {/* LEFT */}
+
+  <div className="flex items-center gap-5">
+
+    <div
+      className={`w-20 h-20 rounded-full flex items-center justify-center text-3xl font-bold shadow-lg
+      ${
+        darkMode
+          ? "bg-gradient-to-r from-blue-600 to-indigo-700 text-white"
+          : "bg-gradient-to-r from-blue-500 to-indigo-500 text-white"
+      }`}
+    >
+      {user?.name?.charAt(0).toUpperCase()}
+    </div>
+
+    <div className="text-left">
+
+      <h2 className="text-3xl font-bold">
+
+        👋 Welcome,
+
+        <span className="text-blue-500">
+          {" "}
+          {user.name}
+        </span>
+
+      </h2>
+
+      <p
+        className={`mt-1 ${
+          darkMode
+            ? "text-gray-300"
+            : "text-gray-600"
+        }`}
+      >
         {user.email}
       </p>
-      <button
-        onClick={logout}
-        className="bg-red-500 text-white px-5 py-2 rounded-lg"
-      >
-        Logout
-      </button>
-     <div
-  className={`mt-6 text-center transition-all duration-1000
 
-    ${
-      darkMode
-        ? "text-yellow-300"
-        : "text-blue-700"
-    }
-  `}
+    </div>
+
+  </div>
+
+  {/* RIGHT */}
+
+  <div className="mt-6 md:mt-0 flex gap-4">
+
+    <div
+      className={`px-5 py-3 rounded-xl shadow ${
+        darkMode
+          ? "bg-orange-900"
+          : "bg-orange-50"
+      }`}
+    >
+      <p className="text-2xl">🔥</p>
+
+      <p className="font-bold">
+        5 Days
+      </p>
+
+      <p className="text-sm">
+        Streak
+      </p>
+
+    </div>
+
+    <div
+      className={`px-5 py-3 rounded-xl shadow ${
+        darkMode
+          ? "bg-blue-900"
+          : "bg-blue-50"
+      }`}
+    >
+      <p className="text-2xl">
+        📚
+      </p>
+
+      <p className="font-bold">
+        {snaps.length}
+      </p>
+
+      <p className="text-sm">
+        Snaps
+      </p>
+
+    </div>
+
+  </div>
+
+</div>
+
+{/* Rotating Quote */}
+
+<div
+  className={`mt-6 text-center transition-all duration-1000
+  ${
+    darkMode
+      ? "text-yellow-300"
+      : "text-blue-700"
+  }`}
 >
 
-  <p className="text-2xl font-bold italic tracking-wide">
+  <p className="text-xl italic font-semibold">
+
     "{quotes[quoteIndex]}"
+
   </p>
+
 </div>
+
+{/* Logout */}
+
+<div className="mt-6 flex justify-center">
+
+<button
+
+onClick={logout}
+
+className="bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded-xl transition"
+
+>
+
+Logout
+
+</button>
 
 </div>
  {/* UPLOAD FORM  */}
@@ -1578,9 +1668,11 @@ onChange={(e) =>
       </form>
     </div>
   </div>
+  </div>
     )
   }
 </div>
+
         {user && (
 <> 
 
@@ -1646,7 +1738,67 @@ className="bg-blue-500 text-white px-4 py-2 rounded-lg"
         {/* SNAPS  */}
 
       <div className="mt-14">
+<div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5 mb-10">
 
+  <div className={`rounded-2xl shadow-lg p-6 text-center ${
+    darkMode ? "bg-gray-800" : "bg-white"
+  }`}>
+    <h3 className="text-blue-500 text-lg font-semibold">
+      📚 Total Snaps
+    </h3>
+
+    <p className="text-3xl font-bold mt-3">
+      {snaps.length}
+    </p>
+  </div>
+
+  <div className={`rounded-2xl shadow-lg p-6 text-center ${
+    darkMode ? "bg-gray-800" : "bg-white"
+  }`}>
+    <h3 className="text-green-500 text-lg font-semibold">
+      ✅ Completed
+    </h3>
+
+    <p className="text-3xl font-bold mt-3">
+      {
+        snaps.filter(
+          snap =>
+            snap.status === "Completed"
+        ).length
+      }
+    </p>
+  </div>
+
+  <div className={`rounded-2xl shadow-lg p-6 text-center ${
+    darkMode ? "bg-gray-800" : "bg-white"
+  }`}>
+    <h3 className="text-orange-500 text-lg font-semibold">
+      📝 Pending
+    </h3>
+
+    <p className="text-3xl font-bold mt-3">
+      {
+        snaps.filter(
+          snap =>
+            snap.status !== "Completed"
+        ).length
+      }
+    </p>
+  </div>
+
+  <div className={`rounded-2xl shadow-lg p-6 text-center ${
+    darkMode ? "bg-gray-800" : "bg-white"
+  }`}>
+    <h3 className="text-purple-500 text-lg font-semibold">
+      ⏰ Study Time
+    </h3>
+
+    <p className="text-3xl font-bold mt-3">
+      {Math.floor(studyTime / 60)}m
+    </p>
+  </div>
+
+</div>
         {/* ANALYTICS */}
 
 <div className="max-w-7xl mx-auto mb-14">
