@@ -502,22 +502,14 @@ if (!user) {
     message: "User not found"
   });
 }
-if (!user.secretName) {
-  return res.status(400).json({
-    message: "This account was created before secret name feature. Please contact support."
-  });
-}
 
-const isSecretMatch =
-  await bcrypt.compare(
-    secretName,
-    user.secretName
-  );
-
-if (!isSecretMatch) {
-  return res.status(400).json({
-    message: "Secret name doesn't match our records"
-  });
+if (user.secretName) {
+  const isSecretMatch = await bcrypt.compare(secretName, user.secretName);
+  if (!isSecretMatch) {
+    return res.status(400).json({
+      message: "Secret name doesn't match our records"
+    });
+  }
 }
 
 
