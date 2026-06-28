@@ -780,7 +780,22 @@ rawText
       return words.length >= 2 && words.length <= 8;
 
     }) || lines[0];
+const invalidTopic =
+  !topic ||
+  topic.length < 6 ||
+  topic.split(" ").length < 2 ||
+  /^[^a-zA-Z]+$/.test(topic);
 
+if (invalidTopic) {
+
+toast.error(
+  "Lecture title couldn't be detected. Please upload a clear image of the topic."
+);  
+
+  setTitle("");
+
+  return;
+}
   const detectedSubject =
     detectSubject(cleanedText);
 
