@@ -2,6 +2,7 @@
   "dependencies": {
     "crypto": "^1.0.1",
     "nodemailer": "^8.0.9",
-    "react-router-dom": "^7.15.1"
+    "react-router-dom": "^7.15.1",
+    "recharts": "^3.9.0"
   }
 }

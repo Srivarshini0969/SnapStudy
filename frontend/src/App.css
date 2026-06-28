@@ -63,9 +63,13 @@ select {
 }
 
 .blur3 {
-  width: 220px;
+  width:180px;
   height: 220px;
   background: #38bdf8;
   top: 45%;
   left: 70%;
   }
+  .subject-btn:hover{
+transform:translateY(-2px);
+transition:.25s;
+}

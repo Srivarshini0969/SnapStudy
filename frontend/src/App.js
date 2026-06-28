@@ -1,3 +1,17 @@
+import {
+  PieChart,
+  Pie,
+  Cell,
+  Tooltip,
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Legend
+} from "recharts";
+
 import ResetPassword from "./ResetPassword";
 import { Routes, Route } from "react-router-dom";
 import { useState, useEffect } from "react";
@@ -32,7 +46,8 @@ const [forgotSecretName,
   const [channelName, setChannelName] =
     useState("");
   const [resetLink, setResetLink] = useState("");
-    /* ===================================
+    
+  /* ===================================
    AUTH STATES
 =================================== */
 
@@ -242,16 +257,24 @@ const watchSnap = async (snap) => {
 
 useEffect(() => {
 
-  const savedUser =
-    localStorage.getItem("user");
+ const savedUser =
+ localStorage.getItem("user");
 
-  if (savedUser) {
+ try{
 
-    setUser(
-      JSON.parse(savedUser)
-    );
+   if(savedUser){
 
-  }
+      setUser(
+        JSON.parse(savedUser)
+      );
+
+   }
+
+ }catch{
+
+   localStorage.removeItem("user");
+
+ }
 
 }, []);
 
@@ -335,15 +358,12 @@ const filteredSnaps = snaps.filter(
 
     const matchesSearch =
 
-      (
-        `${snap.title || ""} ${snap.note || ""}`
-      )
+`${snap.title || ""} ${snap.note || ""}
+${snap.category || ""}`
+.toLowerCase()
+.includes(searchTerm.toLowerCase());
 
-      .toLowerCase()
-
-      .includes(
-        searchTerm.toLowerCase()
-      );
+     
 
     const matchesCategory =
 
@@ -365,37 +385,37 @@ const filteredSnaps = snaps.filter(
 
 const analytics = {
 
-  DSA: {
+  "DSA": {
     total: 0,
     completed: 0
   },
 
-  JavaScript: {
+  "JavaScript": {
     total: 0,
     completed: 0
   },
 
-  Python: {
+  "Python": {
   total:0,
   completed:0
 },
 
-Java: {
+"Java": {
   total:0,
   completed:0
 },
 
-ReactJS: {
+"ReactJS": {
   total:0,
   completed:0
 },
 
-NodeJS: {
+"NodeJS": {
   total:0,
   completed:0
 },
 
-  DBMS: {
+  "DBMS": {
     total: 0,
     completed: 0
   },
@@ -404,8 +424,16 @@ NodeJS: {
     total: 0,
     completed: 0
   },
-
   
+  "BACKEND DEVELOPMENT": {
+    total:0,
+    completed:0
+},
+
+"AI/ML":{
+    total:0,
+    completed:0
+},
 
   "FRONTEND DEVELOPMENT": {
     total: 0,
@@ -441,6 +469,14 @@ snaps.forEach((snap) => {
     }
   }
 });
+
+const barData = Object.entries(analytics).map(
+  ([subject, data]) => ({
+    subject,
+    completed: data.completed,
+    pending: data.total - data.completed,
+  })
+);
 
 /* ===================================
    AUTH SUBMIT
@@ -531,7 +567,7 @@ if (authPassword.length < 6) {
     setAuthName("");
     setAuthEmail("");
     setAuthPassword("");
-    setAuthPassword("");
+    setRegisterSecretName("");
   } catch (error) {
     console.log(
       error.response?.data || error
@@ -636,10 +672,16 @@ if (
   ) {
     return "COMPUTER NETWORKS";
   }
-
+ if (
+  upperText.includes("PYTHON")
+) {
+  return "Python";
+}
   if (
     upperText.includes("JAVA") ||
-    upperText.includes("OOPS")
+upperText.includes("OOPS") ||
+upperText.includes("JVM") ||
+upperText.includes("JDK")
   ) {
     return "Java";
   }
@@ -650,12 +692,24 @@ if (
     return "COMPILER DESIGN";
   }
 if (
-  upperText.includes("REACT") ||
-  upperText.includes("HTML") ||
-  upperText.includes("CSS") ||
-  upperText.includes("JAVASCRIPT")
-) {
-  return "FRONTEND DEVELOPMENT";
+ upperText.includes("REACT") ||
+upperText.includes("JSX") ||
+upperText.includes("HOOK") ||
+upperText.includes("COMPONENT")
+){
+ return "ReactJS";
+}
+if (
+ upperText.includes("JAVASCRIPT")
+){
+ return "JavaScript";
+}
+
+if (
+ upperText.includes("HTML") ||
+ upperText.includes("CSS")
+){
+ return "FRONTEND DEVELOPMENT";
 }
   return "";
 
@@ -681,64 +735,81 @@ const extractTextFromImage =
       const rawText =
         result.data.text;
 const cleanedText =
-  rawText
+rawText
+.replace(/[^a-zA-Z0-9\s]/g," ")
+.replace(/\s+/g," ")
+.trim();
+     if (cleanedText) {
 
-    // remove special chars
-    .replace(/[^a-zA-Z0-9\s]/g, " ")
-
-    // remove extra spaces
-    .replace(/\s+/g, " ")
-
+  const lines = rawText
     .split("\n")
+    .map(line => line.trim())
+    .filter(line => line.length > 3);
 
-    .map((line) =>
-      line.trim()
-    )
+  const stopWords = [
+    "department",
+    "university",
+    "college",
+    "faculty",
+    "semester",
+    "academic",
+    "year",
+    "session",
+    "lecture",
+    "page",
+    "www",
+    "http",
+    "copyright",
+    "slide",
+    "unit"
+  ];
 
-    .filter(
-      (line) =>
+  const topic =
+    lines.find(line => {
 
-        line.length > 3 &&
+      const lower = line.toLowerCase();
 
-        !line.includes("www") &&
+      if (line.length < 5 || line.length > 60)
+        return false;
 
-        !line.includes(".com") &&
+      if (stopWords.some(word => lower.includes(word)))
+        return false;
 
-        !line.includes("http")
-    )[0];
-   
+      const words = line.split(/\s+/);
 
-      if (cleanedText) {
-     setTitle( cleanedText);
-     toast.success(
-  `Topic Detected: ${cleanedText}`
-);
-        await fetchYoutubeVideo(
-  `${cleanedText} ${detectSubject(cleanedText)}`
-);
+      return words.length >= 2 && words.length <= 8;
 
-        const detectedSubject =
-          detectSubject(
-            cleanedText
-          );
+    }) || lines[0];
 
-        if (detectedSubject) {
+  const detectedSubject =
+    detectSubject(cleanedText);
 
-          setCategory(
-            detectedSubject
-          );
-toast.success(
-  `Subject Detected: ${detectedSubject}`
-);
-        }
+  setTitle(topic);
 
-        toast.success(
-          "Topic detected!"
-        );
+  if (detectedSubject) {
+    setCategory(detectedSubject);
 
+    toast.success(
+      `Subject Detected: ${detectedSubject}`
+    );
+  }
+
+  toast.success(
+    `Detected Topic: ${topic}`
+  );
+
+  if (topic && topic.length > 3) {
+    await fetchYoutubeVideo(
+      topic,
+      detectedSubject
+    );
+  }
+
+}
+        
       }
 
-    } catch (error) {
+    catch (error) {
 
       toast.dismiss();
 
@@ -750,43 +821,63 @@ toast.success(
     }
   };
 
-  const fetchYoutubeVideo =
-  async (topic) => {
+const fetchYoutubeVideo = async (topic, subject = "") => {
 
-    try {
+  const loading = toast.loading("Searching YouTube lecture...");
 
-      const result =
-        await SearchYoutube.GetListByKeyword(
-          `${topic} full lecture`,
-          false,
-          1
-        );
+  try {
+const searchQuery =
+  `${topic} ${subject}`.trim() + " full lecture";
 
-      const firstVideo =
-        result.items[0];
+const result =
+  await SearchYoutube.GetListByKeyword(
+    searchQuery,
+    false,
+    1
+  );
+    
+    console.log("Search Query:",searchQuery);
+    console.log("YouTube Result:", result);
+    console.log("Items:", result?.items);
+    console.log("First Video:", result?.items?.[0]);
 
-      if (firstVideo) {
+    toast.dismiss(loading);
 
-        const videoId =
-          firstVideo.id;
+    const firstVideo = result?.items?.[0];
 
-        const videoLink =
+    if (!firstVideo) {
 
-          `https://www.youtube.com/watch?v=${videoId}`;
+      toast.error("No lecture found.");
 
-        setVideoUrl(
-          videoLink
-        );
-
-      }
-
-    } catch (error) {
-
-      console.log(error);
-
+      return;
     }
 
-  };
+    const videoId =
+  firstVideo.id?.videoId ||
+  firstVideo.videoId ||
+  firstVideo.id;
+   if (!videoId) {
+  toast.error("Invalid YouTube result.");
+  return;
+}
+    const videoLink =
+      `https://www.youtube.com/watch?v=${videoId}`;
+
+    setVideoUrl(videoLink);
+
+  } catch (error) {
+
+    toast.dismiss(loading);
+
+    console.error("YouTube Error:", error);
+
+    toast.error(
+      "Couldn't find a YouTube lecture. You can add the link manually."
+    );
+
+  }
+
+};
 
 /* ===================================
    UPLOAD SNAP
@@ -816,7 +907,6 @@ if (!title.trim()) {
 }
 
 
-const hasImage = !!image;
   const formData = new FormData();
   formData.append(
     "title",
@@ -869,17 +959,14 @@ const hasImage = !!image;
   `${process.env.REACT_APP_API_URL}/api/snaps`,
   formData,
   {
-    headers: {
-      Authorization:
-        `Bearer ${localStorage.getItem("token")}`,
-
-      ...(hasImage && {
-        "Content-Type":
-          "multipart/form-data"
+   
+headers: {
+ Authorization:
+ `Bearer ${localStorage.getItem("token")}`
+}     
       })
-    }
-  }
-);
+    
+  
 
   toast.dismiss();
 
@@ -899,20 +986,23 @@ const hasImage = !!image;
   setCategory("");
   setChannelName("");
 
-} catch (error) {
+} 
+catch (error) {
 
   toast.dismiss();
 
-  console.log(
-    error.response?.data || error
-  );
+  console.log("UPLOAD ERROR:", error);
+
+  console.log("SERVER:", error.response);
+
+  console.log("DATA:", error.response?.data);
 
   toast.error(
-    "Upload failed"
+    error.response?.data?.message || "Upload failed"
   );
-
-}
-};
+    }
+        
+  }
 
   /* ===================================
      START EDIT
@@ -979,9 +1069,8 @@ const updateSnap = async (id) => {
       }
     );
     fetchSnaps();
-    toast.success(
-      "Status updated"
-    );
+    toast.success(`Marked as ${status}`);
+fetchSnaps();
   } catch (error) {
     console.log(
       error.response?.data || error
@@ -1004,7 +1093,18 @@ const updateSnap = async (id) => {
     }
   }
 );
-      toast.success("Snap deleted");
+toast.success("Snap updated successfully!");
+
+setEditingId(null);
+
+setEditForm({
+  title: "",
+  videoUrl: "",
+  timestamp: "",
+  note: "",
+  category: "",
+  channelName: ""
+});
       fetchSnaps();
     } catch (error) {
       console.log(
@@ -1013,6 +1113,33 @@ const updateSnap = async (id) => {
       toast.error("Delete failed");
     }
   };
+
+  const completedCount = snaps.filter(
+  (snap) => snap.status === "Completed"
+).length;
+
+const pendingCount = snaps.filter(
+  (snap) => snap.status !== "Completed"
+).length;
+
+const studyMinutes = Math.floor(studyTime / 60);
+
+const pieData = [
+  {
+    name: "Completed",
+    value: completedCount,
+  },
+  {
+    name: "Pending",
+    value: pendingCount,
+  },
+];
+
+const COLORS = [
+  "#22c55e",
+  "#f59e0b",
+];
+
   return (
 
 <Routes>
@@ -1073,7 +1200,7 @@ const updateSnap = async (id) => {
 
 <div className="w-full max-w-7xl mx-auto mb-10 px-4">  {
     !user ? (
-<div className={`w-full max-w-3xl mx-auto p-6 rounded-2xl shadow-lg
+<div className={`w-full max-w-2xl mx-auto p-6 rounded-2xl shadow-lg
     ${
       darkMode
         ? "bg-gray-800 text-white"
@@ -1129,8 +1256,7 @@ onChange={(e) =>
 
       <button
         type="submit"
-        className="bg-blue-600 text-white py-3 rounded-lg"
-      >
+className="bg-blue-600 hover:bg-blue-700 transition duration-300 text-white py-3 rounded-lg"      >
         Reset Password
       </button>
       
@@ -1241,8 +1367,7 @@ onChange={(e) =>
 
       <button
         type="submit"
-        className="bg-blue-600 text-white py-3 rounded-lg"
-      >
+className="bg-blue-600 hover:bg-blue-700 transition duration-300 text-white py-3 rounded-lg"      >
         {
           isLogin
             ? "Login"
@@ -1319,7 +1444,7 @@ onChange={(e) =>
           : "bg-gradient-to-r from-blue-500 to-indigo-500 text-white"
       }`}
     >
-      {user?.name?.charAt(0).toUpperCase()}
+{user?.name?.charAt(0)?.toUpperCase() || "U"}
     </div>
 
     <div className="text-left">
@@ -1363,11 +1488,11 @@ onChange={(e) =>
       <p className="text-2xl">🔥</p>
 
       <p className="font-bold">
-        5 Days
+         {completedCount}
       </p>
 
       <p className="text-sm">
-        Streak
+         Completed
       </p>
 
     </div>
@@ -1408,7 +1533,7 @@ onChange={(e) =>
   }`}
 >
 
-  <p className="text-xl italic font-semibold">
+<p className="text-xl italic font-semibold min-h-[32px]">
 
     "{quotes[quoteIndex]}"
 
@@ -1424,8 +1549,7 @@ onChange={(e) =>
 
 onClick={logout}
 
-className="bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded-xl transition"
-
+className="bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded-xl transition duration-300"
 >
 
 Logout
@@ -1433,10 +1557,12 @@ Logout
 </button>
 
 </div>
+</div>
+
  {/* UPLOAD FORM  */}
 
 <div
-  className={` w-full max-w-3xl mx-auto p-6 rounded-2xl shadow-lg
+  className={` w-full max-w-5xl mx-auto p-6 rounded-2xl shadow-lg
     ${
       darkMode
         ? "bg-gray-800 text-white"
@@ -1668,13 +1794,11 @@ Logout
       </form>
     </div>
   </div>
-  </div>
+  
     )
   }
 </div>
 
-        {user && (
-<> 
 
          {/* SEARCH + FILTERS */}
 
@@ -1736,70 +1860,189 @@ className="bg-blue-500 text-white px-4 py-2 rounded-lg"
         </div>
 
         {/* SNAPS  */}
+ <div className="mt-14">
+  <div className="grid grid-cols-2 md:grid-cols-4 gap-5 mb-10">
 
-      <div className="mt-14">
-<div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5 mb-10">
-
-  <div className={`rounded-2xl shadow-lg p-6 text-center ${
-    darkMode ? "bg-gray-800" : "bg-white"
-  }`}>
-    <h3 className="text-blue-500 text-lg font-semibold">
-      📚 Total Snaps
-    </h3>
-
-    <p className="text-3xl font-bold mt-3">
-      {snaps.length}
+  <div className={`rounded-2xl shadow-xl p-6 hover:scale-110 transition duration-300
+${
+darkMode
+? "bg-gray-800 text-white"
+: "bg-white"
+}`}
+>
+    <p className="text-4xl mb-2">📚</p>
+<h2 className="text-4xl font-extrabold bg-gradient-to-r from-blue-500 to-purple-600 bg-clip-text text-transparent">
+        {snaps.length}
+    </h2>
+    <p className="text-gray-500">
+      Total Snaps
     </p>
   </div>
 
-  <div className={`rounded-2xl shadow-lg p-6 text-center ${
-    darkMode ? "bg-gray-800" : "bg-white"
-  }`}>
-    <h3 className="text-green-500 text-lg font-semibold">
-      ✅ Completed
-    </h3>
-
-    <p className="text-3xl font-bold mt-3">
-      {
-        snaps.filter(
-          snap =>
-            snap.status === "Completed"
-        ).length
-      }
+  <div className={`rounded-2xl shadow-lg p-6 hover:scale-105 transition
+${
+darkMode
+? "bg-gray-800 text-white"
+: "bg-white"
+}`}
+  >
+    <p className="text-4xl mb-2">✅</p>
+    <h2 className="text-4xl font-extrabold bg-gradient-to-r from-green-500 to-green-600 bg-clip-text text-transparent">
+      {completedCount}
+    </h2>
+    <p className="text-gray-500">
+      Completed
     </p>
   </div>
 
-  <div className={`rounded-2xl shadow-lg p-6 text-center ${
-    darkMode ? "bg-gray-800" : "bg-white"
-  }`}>
-    <h3 className="text-orange-500 text-lg font-semibold">
-      📝 Pending
-    </h3>
-
-    <p className="text-3xl font-bold mt-3">
-      {
-        snaps.filter(
-          snap =>
-            snap.status !== "Completed"
-        ).length
-      }
+  <div className={`rounded-2xl shadow-lg p-6 hover:scale-105 transition
+${
+darkMode
+? "bg-gray-800 text-white"
+: "bg-white"
+}`}
+  >
+    <p className="text-4xl mb-2">⏳</p>
+    <h2 className="text-4xl font-extrabold bg-gradient-to-r from-orange-500 to-red-500 bg-clip-text text-transparent">
+      {pendingCount}
+    </h2>
+    <p className="text-gray-500">
+      Pending
     </p>
   </div>
 
-  <div className={`rounded-2xl shadow-lg p-6 text-center ${
-    darkMode ? "bg-gray-800" : "bg-white"
-  }`}>
-    <h3 className="text-purple-500 text-lg font-semibold">
-      ⏰ Study Time
-    </h3>
-
-    <p className="text-3xl font-bold mt-3">
-      {Math.floor(studyTime / 60)}m
+  <div className={`rounded-2xl shadow-xl p-6 hover:scale-110 transition duration-300
+${
+darkMode
+? "bg-gray-800 text-white"
+: "bg-white"
+}`}
+>
+    <p className="text-4xl mb-2">⏱️</p>
+    <h2 className="text-4xl font-extrabold bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent">
+      {studyMinutes}m </h2>
+    <p className="text-gray-500">
+      Study Time
     </p>
   </div>
 
 </div>
+  </div>
+
         {/* ANALYTICS */}
+<div className="max-w-7xl mx-auto my-14">
+
+<h2 className="text-3xl font-bold text-center mb-8">
+📊 Study Dashboard
+</h2>
+
+<div className="grid md:grid-cols-2 gap-8">
+
+{/* PIE CHART */}
+
+<div
+className={`rounded-2xl shadow-xl p-6
+${
+darkMode
+? "bg-gray-800"
+: "bg-white"
+}`}
+>
+
+<h3 className="text-xl font-bold mb-5 text-center">
+Completed vs Pending
+</h3>
+
+<div style={{ width: "100%", height: 350 }}>
+
+<ResponsiveContainer>
+
+<PieChart>
+
+<Pie
+data={pieData}
+cx="50%"
+cy="50%"
+outerRadius={120}
+dataKey="value"
+label
+>
+
+{
+pieData.map((entry,index)=>(
+<Cell
+key={index}
+fill={COLORS[index]}
+/>
+))
+}
+
+</Pie>
+
+<Tooltip/>
+
+</PieChart>
+
+</ResponsiveContainer>
+
+</div>
+
+</div>
+
+{/* BAR CHART */}
+
+<div
+className={`rounded-2xl shadow-xl p-6
+${
+darkMode
+? "bg-gray-800"
+: "bg-white"
+}`}
+>
+
+<h3 className="text-xl font-bold mb-5 text-center">
+Subject Wise Progress
+</h3>
+
+<div style={{ width: "100%", height: 350 }}>
+
+<ResponsiveContainer>
+
+<BarChart
+data={barData}
+>
+
+<CartesianGrid strokeDasharray="3 3"/>
+
+<XAxis dataKey="subject"/>
+
+<YAxis/>
+
+<Tooltip/>
+
+<Legend/>
+
+<Bar
+dataKey="completed"
+fill="#22c55e"
+/>
+
+<Bar
+dataKey="pending"
+fill="#f59e0b"
+/>
+
+</BarChart>
+
+</ResponsiveContainer>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
 
 <div className="max-w-7xl mx-auto mb-14">
   <h2 className="text-3xl font-bold text-center mb-8">
@@ -2149,51 +2392,14 @@ className="bg-blue-500 text-white px-4 py-2 rounded-lg"
  )
   }
  <div className="flex flex-wrap gap-2 items-center">
-<button
 
-  onClick={() => {
 
-    if (snap.videoUrl) {
-
-      window.open(
-        snap.watchLink,
-        "_blank"
-      );
-
-    } else {
-
-      const searchQuery =
-
-        `${snap.title || ""}
-         ${snap.channelName || ""}
-         ${snap.category || ""}
-         lecture`;
-
-      const youtubeUrl =
-
-        `https://www.youtube.com/results?search_query=${encodeURIComponent(searchQuery)}`;
-
-      window.open(
-        youtubeUrl,
-        "_blank"
-      );
-
-    }
-
-  }}
-
+  <button
+  onClick={() => watchSnap(snap)}
   className="bg-green-500 text-white px-4 py-2 rounded-lg"
-
 >
-
-  {
-    snap.videoUrl
-      ? "Continue"
-      : "Resume Search"
-  }
-
+  {snap.videoUrl ? "Continue" : "Resume Search"}
 </button>
-
 
  <button
      onClick={() =>
@@ -2254,6 +2460,7 @@ className="bg-blue-500 text-white px-4 py-2 rounded-lg"
  </>
    )
 }
+
   </div>
  </div>
 
@@ -2262,13 +2469,15 @@ className="bg-blue-500 text-white px-4 py-2 rounded-lg"
 
             }
 
-           </div>
+           
 
         </div>
 
-      </>
+      
 
-        )}
+        
+      
+    
 
      </div>
 
@@ -2278,14 +2487,13 @@ className="bg-blue-500 text-white px-4 py-2 rounded-lg"
 />
 
 <Route
-  path="/reset-password/:token"
-  element={<ResetPassword />}
+    path="/reset-password/:token"
+    element={<ResetPassword />}
 />
 
 </Routes>
 
-  );
+);
 
 }
-
 export default App;
