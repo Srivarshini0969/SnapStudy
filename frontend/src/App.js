@@ -1068,8 +1068,9 @@ const updateSnap = async (id) => {
         }
       }
     );
-    fetchSnaps();
-    toast.success(`Marked as ${status}`);
+    await fetchSnaps();
+
+toast.success(`Marked as ${status}`);
 fetchSnaps();
   } catch (error) {
     console.log(
@@ -1093,8 +1094,7 @@ fetchSnaps();
     }
   }
 );
-toast.success("Snap updated successfully!");
-
+toast.success("Snap deleted successfully!");
 setEditingId(null);
 
 setEditForm({
