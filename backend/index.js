@@ -240,102 +240,86 @@ const generateWatchLink = (
    REGISTER
 =================================== */
 
-app.post(
-  "/api/auth/register",
-  async (req, res) => {
-
+app.post("/api/auth/register", async (req, res) => {
+const {
+name,
+email,
+password,
+secretName
+}=req.body;
     try {
 
-      const {
-        name, email,password,secretName
-      } = req.body;
-      if (!secretName) {
+    let {
+  name,
+  email,
+  password,
+  secretName
+} = req.body;
 
-  return res.status(400).json({
+name = name.trim();
+email = email.trim().toLowerCase();
 
-    message:
-      "Secret name required"
-
-  });
-
+if (!validator.isEmail(email)) {
+    return res.status(400).json({
+        message: "Please enter a valid email address"
+    });
 }
-      if (name.trim().length < 3) {
 
-  return res.status(400).json({
-
-    message:
-      "Name must be at least 3 characters"
-
-  });
-
+if (name.trim().length < 3) {
+    return res.status(400).json({
+        message: "Name must be at least 3 characters"
+    });
 }
 
 if (password.length < 6) {
-
-  return res.status(400).json({
-
-    message:
-      "Password must be at least 6 characters"
-
-  });
-
+    return res.status(400).json({
+        message: "Password must be at least 6 characters"
+    });
 }
-if (name.trim().length < 3) {
 
-  return res.status(400).json({
-
-    message:
-      "Name too short"
-
-  });
-
+if (secretName.trim().length < 3) {
+    return res.status(400).json({
+        message: "Secret name must be at least 3 characters"
+    });
 }
-const emailRegex = /^[a-zA-Z0-9._%+-]{4,}@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-if (!emailRegex.test(email)) {
 
-  return res.status(400).json({
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-    message:
-      "Invalid email format"
-
-  });
-
+if (!emailRegex.test(cleanEmail)) {
+    return res.status(400).json({
+        message: "Please enter a valid email address"
+    });
 }
-      const existingUser =
-        await User.findOne({
-          email
-        });
+
+const existingUser = await User.findOne({
+    email
+});
 
       if (existingUser) {
 
         return res.status(400).json({
 
-          message:
-            "User already exists"
+          message: "User already exists"
 
         });
 
       }
 
-      const hashedPassword =
-        await bcrypt.hash(
+      const hashedPassword = await bcrypt.hash(
           password,
           10
         );
-        const hashedSecretName =
-  await bcrypt.hash(
+        const hashedSecretName = await bcrypt.hash(
     secretName,
     10
   );
 
-      const newUser =new User({
-
-          name,
-          email,
-          password:hashedPassword,
-          secretName: hashedSecretName
-
-        });
+      const newUser = new User({
+    name,
+    email,
+    password: hashedPassword,
+    secretName: hashedSecretName
+});
 
       await newUser.save();
 
@@ -394,15 +378,24 @@ app.post(
 
     try {
 
-      const {
-        email,
-        password
-      } = req.body;
+      let {
+email,
+password
+}=req.body;
 
-      const user =
-        await User.findOne({
-          email
-        });
+email = email.trim().toLowerCase();
+
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+if (!emailRegex.test(email)) {
+  return res.status(400).json({
+    message: "Please enter a valid email address"
+  });
+}
+
+const user = await User.findOne({
+  email
+});
 
       if (!user) {
 
@@ -487,8 +480,20 @@ app.post(
 
     try {
 
-    const { email, secretName } = req.body;
+let {
+email,
+secretName
+}=req.body;
 
+email=email.trim().toLowerCase();
+secretName=secretName.trim();
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+if (!emailRegex.test(email)) {
+  return res.status(400).json({
+    message: "Please enter a valid email address"
+  });
+}
 if (!email || !secretName) {
   return res.status(400).json({
     message: "Email and secret name required"

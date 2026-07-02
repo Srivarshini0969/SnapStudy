@@ -207,14 +207,14 @@ const watchSnap = async (snap) => {
        DIRECT VIDEO
     ========================= */
 
-    if (snap.videoUrl) {
+    if (snap.watchLink) {
 
-      window.open(
-        snap.videoUrl,
-        "_blank"
-      );
+  window.open(
+    snap.watchLink,
+    "_blank"
+  );
 
-    }
+}
 
     /* =========================
        OCR SEARCH
@@ -507,8 +507,16 @@ const handleAuth = async (e) => {
     password: authPassword,
     secretName: registerSecretName
   };
+
+  const email = authEmail.trim().toLowerCase();
+
 const emailRegex =
-/^[a-zA-Z0-9._%+-]{4,}@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+/^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+if (!emailRegex.test(email)) {
+    toast.error("Enter a valid email address");
+    return;
+}
 
 if (!emailRegex.test(authEmail)) {
 
@@ -887,8 +895,8 @@ const result =
     console.error("YouTube Error:", error);
 
     toast.error(
-      "Couldn't find a YouTube lecture. You can add the link manually."
-    );
+  "Lecture title couldn't be detected. Please upload a clear image of the topic."
+);
 
   }
 
@@ -1255,7 +1263,7 @@ onChange={(e) =>
         value={forgotEmail}
         onChange={(e) =>
           setForgotEmail(
-            e.target.value
+            e.target.value.trim().toLowerCase()
           )
         }
         className={`border p-3 rounded-lg
@@ -1350,8 +1358,8 @@ onChange={(e) =>
         value={authEmail}
         onChange={(e) =>
           setAuthEmail(
-            e.target.value
-          )
+e.target.value.trim().toLowerCase()
+)
         }
         className={`border p-3 rounded-lg
   ${
