@@ -241,132 +241,56 @@ const generateWatchLink = (
 =================================== */
 
 app.post("/api/auth/register", async (req, res) => {
-const {
-name,
-email,
-password,
-secretName
-}=req.body;
-    try {
+  try {
+    let { name, email, password, secretName } = req.body;
 
-    let {
-  name,
-  email,
-  password,
-  secretName
-} = req.body;
+    name = name?.trim();
+    email = email?.trim().toLowerCase();
+    secretName = secretName?.trim();
 
-name = name.trim();
-email = email.trim().toLowerCase();
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@(gmail|yahoo|outlook|hotmail)\.com$/;
 
-if (!validator.isEmail(email)) {
-    return res.status(400).json({
-        message: "Please enter a valid email address"
-    });
-}
-
-if (name.trim().length < 3) {
-    return res.status(400).json({
-        message: "Name must be at least 3 characters"
-    });
-}
-
-if (password.length < 6) {
-    return res.status(400).json({
-        message: "Password must be at least 6 characters"
-    });
-}
-
-if (secretName.trim().length < 3) {
-    return res.status(400).json({
-        message: "Secret name must be at least 3 characters"
-    });
-}
-
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-if (!emailRegex.test(cleanEmail)) {
-    return res.status(400).json({
-        message: "Please enter a valid email address"
-    });
-}
-
-const existingUser = await User.findOne({
-    email
-});
-
-      if (existingUser) {
-
-        return res.status(400).json({
-
-          message: "User already exists"
-
-        });
-
-      }
-
-      const hashedPassword = await bcrypt.hash(
-          password,
-          10
-        );
-        const hashedSecretName = await bcrypt.hash(
-    secretName,
-    10
-  );
-
-      const newUser = new User({
-    name,
-    email,
-    password: hashedPassword,
-    secretName: hashedSecretName
-});
-
-      await newUser.save();
-
-      const token =
-        jwt.sign(
-
-          {
-            id: newUser._id
-          },
-
-          JWT_SECRET,
-
-          {
-            expiresIn: "7d"
-          }
-
-        );
-
-      res.status(201).json({
-
-        token,
-
-        user: {
-
-          id: newUser._id,
-          name: newUser.name,
-          email: newUser.email
-
-        }
-
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({
+        message: "Only gmail, yahoo, outlook, or hotmail addresses allowed"
       });
-
-    } catch (error) {
-
-      console.log(error);
-
-      res.status(500).json({
-
-        message:
-          "Registration failed"
-
-      });
-
     }
 
+    if (!name || name.length < 3) {
+      return res.status(400).json({ message: "Name must be at least 3 characters" });
+    }
+
+    if (!password || password.length < 6) {
+      return res.status(400).json({ message: "Password must be at least 6 characters" });
+    }
+
+    if (!secretName || secretName.length < 3) {
+      return res.status(400).json({ message: "Secret name must be at least 3 characters" });
+    }
+
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(400).json({ message: "User already exists" });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const hashedSecretName = await bcrypt.hash(secretName, 10);
+
+    const newUser = new User({ name, email, password: hashedPassword, secretName: hashedSecretName });
+    await newUser.save();
+
+    const token = jwt.sign({ id: newUser._id }, JWT_SECRET, { expiresIn: "7d" });
+
+    res.status(201).json({
+      token,
+      user: { id: newUser._id, name: newUser.name, email: newUser.email }
+    });
+
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "Registration failed" });
   }
-);
+});
 
 /* ===================================
    LOGIN
