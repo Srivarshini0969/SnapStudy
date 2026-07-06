@@ -13,8 +13,10 @@ import {
 } from "recharts";
 
 import ResetPassword from "./ResetPassword";
-import { Routes, Route } from "react-router-dom";
-import { useState, useEffect } from "react";
+import VerifyEmail from "./pages/VerifyEmail";
+import { useEffect, useMemo, useState } from "react";
+import { Route, Routes } from "react-router-dom";
+
 import axios from "axios";
 import toast, { Toaster } from "react-hot-toast";
 import Tesseract from "tesseract.js";
@@ -40,13 +42,27 @@ const [forgotSecretName,
   const [note, setNote] = useState("");
 
   const [category, setCategory] = useState("");
-   const [studyTime, setStudyTime] =
-  useState(0);
+
+  const [darkMode, setDarkMode] = useState(false);
+   
+  const [studyTime, setStudyTime] = useState(() =>
+
+  Number(
+    localStorage.getItem("studyTime")
+  ) || 0
+
+);
    
   const [channelName, setChannelName] =
     useState("");
-  const [resetLink, setResetLink] = useState("");
-    
+
+    const [resetLink, setResetLink] = useState("");
+
+const authHeader = {
+  headers: {
+    Authorization: `Bearer ${localStorage.getItem("token")}`
+  }
+};
   /* ===================================
    AUTH STATES
 =================================== */
@@ -66,8 +82,10 @@ const [authPassword, setAuthPassword] =
 const [user, setUser] =
   useState(null);
 
-  const [darkMode, setDarkMode] =
-  useState(false);
+useEffect(() => {
+  localStorage.setItem("darkMode", darkMode);
+}, [darkMode]);
+  
 
 const [showForgotPassword, setShowForgotPassword] =
   useState(false);
@@ -148,34 +166,21 @@ const [forgotEmail, setForgotEmail] =
   /* ===================================
    FETCH SNAPS
 =================================== */
+
 const fetchSnaps = async () => {
 
   try {
 
-    const token =
-      localStorage.getItem("token");
-
-    const response =
-      await axios.get(
-
-        `${process.env.REACT_APP_API_URL}/api/snaps`,
-
-        {
-          headers: {
-            Authorization:
-              `Bearer ${token}`
-          }
-        }
-
-      );
+    const response = await axios.get(
+      `${process.env.REACT_APP_API_URL}/api/snaps`,
+      authHeader
+    );
 
     setSnaps(response.data);
 
   } catch (error) {
 
-    console.log(
-      error.response?.data || error
-    );
+    console.log(error.response?.data || error);
 
   }
 
@@ -184,73 +189,48 @@ const fetchSnaps = async () => {
   /* ===================================
      WATCH SNAP
   =================================== */
-const watchSnap = async (snap) => {
 
-  try {
+  const watchSnap = async (snap) => {
 
-    await axios.put(
+    try {
 
-      `${process.env.REACT_APP_API_URL}/api/snaps/view/${snap._id}`,
+      await axios.put(
+        `${process.env.REACT_APP_API_URL}/api/snaps/view/${snap._id}`,
+        {},
+        authHeader
+      );
 
-      {},
+      if (snap.videoUrl) {
 
-      {
-        headers: {
-          Authorization:
-            `Bearer ${localStorage.getItem("token")}`
-        }
+        window.open(
+          snap.watchLink || snap.videoUrl,
+          "_blank"
+        );
+
+      } else {
+
+        const searchQuery =
+          `${snap.title || ""} ${snap.category || ""} lecture`;
+
+        const youtubeUrl =
+          `https://www.youtube.com/results?search_query=${encodeURIComponent(searchQuery)}`;
+
+        window.open(
+          youtubeUrl,
+          "_blank"
+        );
+
       }
 
-    );
+      fetchSnaps();
 
-    /* =========================
-       DIRECT VIDEO
-    ========================= */
+    } catch (error) {
 
-    if (snap.watchLink) {
-
-  window.open(
-    snap.watchLink,
-    "_blank"
-  );
-
-}
-
-    /* =========================
-       OCR SEARCH
-    ========================= */
-
-    else {
-
-      const searchQuery =
-
-        `${snap.title || ""}
-         ${snap.category || ""}
-         lecture`;
-
-      const youtubeUrl =
-
-        `https://www.youtube.com/results?search_query=${encodeURIComponent(searchQuery)}`;
-
-      window.open(
-        youtubeUrl,
-        "_blank"
-      );
+      console.log(error.response?.data || error);
 
     }
 
-    fetchSnaps();
-
-  } catch (error) {
-
-    console.log(
-      error.response?.data || error
-    );
-
-  }
-
-};
-
+  };
 /* ===================================
    PAGE LOAD
 =================================== */
@@ -286,6 +266,7 @@ useEffect(() => {
 
   if (user) {
 
+
     fetchSnaps();
 
   }
@@ -314,6 +295,15 @@ useEffect(() => {
     clearInterval(timer);
 
 }, [user]);
+
+useEffect(() => {
+
+  localStorage.setItem(
+    "studyTime",
+    studyTime
+  );
+
+}, [studyTime]);
 
  /*quote*/
 const quotes = [
@@ -353,121 +343,69 @@ useEffect(() => {
   /* ===================================
      SEARCH + FILTER
   =================================== */
-const filteredSnaps = snaps.filter(
-  (snap) => {
+
+
+const filteredSnaps = useMemo(() => {
+
+  return snaps.filter((snap) => {
 
     const matchesSearch =
-
-`${snap.title || ""} ${snap.note || ""}
-${snap.category || ""}`
-.toLowerCase()
-.includes(searchTerm.toLowerCase());
-
-     
+      `${snap.title || ""} ${snap.note || ""} ${snap.category || ""}`
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase());
 
     const matchesCategory =
-
       selectedCategory === "" ||
+      snap.category === selectedCategory;
 
-      snap.category ===
-      selectedCategory;
+    return matchesSearch && matchesCategory;
 
-    return (
-      matchesSearch &&
-      matchesCategory
-    );
+  });
 
-  }
-);
-    /* ===================================
+}, [snaps, searchTerm, selectedCategory]);
+
+/* ===================================
    SUBJECT ANALYTICS
 =================================== */
 
-const analytics = {
+const SUBJECTS = [
+  "DSA",
+  "Java",
+  "Python",
+  "JavaScript",
+  "ReactJS",
+  "NodeJS",
+  "DBMS",
+  "OPERATING SYSTEMS",
+  "COMPUTER NETWORKS",
+  "COMPILER DESIGN",
+  "FRONTEND DEVELOPMENT",
+  "BACKEND DEVELOPMENT",
+  "AI/ML"
+];
 
-  "DSA": {
+const analytics = SUBJECTS.reduce((acc, subject) => {
+  acc[subject] = {
     total: 0,
     completed: 0
-  },
-
-  "JavaScript": {
-    total: 0,
-    completed: 0
-  },
-
-  "Python": {
-  total:0,
-  completed:0
-},
-
-"Java": {
-  total:0,
-  completed:0
-},
-
-"ReactJS": {
-  total:0,
-  completed:0
-},
-
-"NodeJS": {
-  total:0,
-  completed:0
-},
-
-  "DBMS": {
-    total: 0,
-    completed: 0
-  },
-
-  "COMPILER DESIGN": {
-    total: 0,
-    completed: 0
-  },
-  
-  "BACKEND DEVELOPMENT": {
-    total:0,
-    completed:0
-},
-
-"AI/ML":{
-    total:0,
-    completed:0
-},
-
-  "FRONTEND DEVELOPMENT": {
-    total: 0,
-    completed: 0
-  },
-
-  "OPERATING SYSTEMS": {
-    total: 0,
-    completed: 0
-  },
-
-  "COMPUTER NETWORKS": {
-    total: 0,
-    completed: 0
-  }
-
-};
+  };
+  return acc;
+}, {});
 
 snaps.forEach((snap) => {
-  if (
-    analytics[snap.category]
-  ) {
-    analytics[
-      snap.category
-    ].total++;
-    if (
-      snap.status ===
-      "Completed"
-    ) {
-      analytics[
-        snap.category
-      ].completed++;
+
+  if (analytics[snap.category]) {
+
+    analytics[snap.category].total++;
+
+    if (snap.status === "Completed") {
+
+      analytics[snap.category].completed++;
+
     }
+
   }
+
 });
 
 const barData = Object.entries(analytics).map(
@@ -477,7 +415,6 @@ const barData = Object.entries(analytics).map(
     pending: data.total - data.completed,
   })
 );
-
 /* ===================================
    AUTH SUBMIT
 =================================== */
@@ -511,20 +448,11 @@ const handleAuth = async (e) => {
   const email = authEmail.trim().toLowerCase();
 
 const emailRegex =
-/^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+/^[a-zA-Z0-9._%+-]+@gmail\.com$/;
 
 if (!emailRegex.test(email)) {
-    toast.error("Enter a valid email address");
+    toast.error("Only Gmail addresses are allowed");
     return;
-}
-
-if (!emailRegex.test(authEmail)) {
-
-  toast.error(
-    "Enter valid email"
-  );
-
-  return;
 }
 
 if (authPassword.length < 6) {
@@ -630,95 +558,125 @@ const logout = () => {
    OCR TEXT EXTRACTION
 =================================== */
 
+const subjectKeywords = {
+
+  DSA: [
+    "ARRAY",
+    "STRING",
+    "RECURSION",
+    "LINKED",
+    "STACK",
+    "QUEUE",
+    "TREE",
+    "GRAPH",
+    "AVL",
+    "BST",
+    "SORTING",
+    "SEARCH",
+    "HEAP",
+    "HASH"
+  ],
+
+  Java: [
+    "JAVA",
+    "JVM",
+    "JDK",
+    "OOPS"
+  ],
+
+  Python: [
+    "PYTHON"
+  ],
+
+  JavaScript: [
+    "JAVASCRIPT",
+    "ES6",
+    "PROMISE",
+    "ASYNC"
+  ],
+
+  ReactJS: [
+    "REACT",
+    "JSX",
+    "HOOK",
+    "COMPONENT"
+  ],
+
+  NodeJS: [
+    "NODE",
+    "EXPRESS",
+    "NPM"
+  ],
+
+  DBMS: [
+    "DBMS",
+    "SQL",
+    "NORMALIZATION",
+    "DATABASE"
+  ],
+
+  "OPERATING SYSTEMS": [
+    "OPERATING SYSTEM",
+    "OS",
+    "DEADLOCK",
+    "SCHEDULING",
+    "PROCESS"
+  ],
+
+  "COMPUTER NETWORKS": [
+    "TCP",
+    "UDP",
+    "OSI",
+    "HTTP",
+    "NETWORK"
+  ],
+
+  "COMPILER DESIGN": [
+    "COMPILER",
+    "LEXICAL",
+    "PARSER",
+    "SYNTAX"
+  ],
+
+  "FRONTEND DEVELOPMENT": [
+    "HTML",
+    "CSS",
+    "BOOTSTRAP"
+  ],
+
+  "BACKEND DEVELOPMENT": [
+    "API",
+    "REST",
+    "MONGODB",
+    "BACKEND"
+  ],
+
+  "AI/ML": [
+    "MACHINE LEARNING",
+    "AI",
+    "NEURAL",
+    "MODEL",
+    "REGRESSION"
+  ]
+
+};
+
 const detectSubject = (text) => {
 
-  const upperText =
-    text.toUpperCase();
-if (
+  const upper = text.toUpperCase();
 
-  upperText.includes("ARRAY") ||
-  upperText.includes("STRING") ||
-  upperText.includes("RECURSION") ||
-  upperText.includes("LINKED") ||
-  upperText.includes("STACK") ||
-  upperText.includes("QUEUE") ||
-  upperText.includes("TREE") ||
-  upperText.includes("GRAPH") ||
-  upperText.includes("AVL") ||
-  upperText.includes("BST") ||
-  upperText.includes("SORTING") ||
-  upperText.includes("SEARCH") ||
-  upperText.includes("HEAP") ||
-  upperText.includes("HASH")
+  for (const subject in subjectKeywords) {
 
-) {
+    if (
+      subjectKeywords[subject].some(keyword =>
+        upper.includes(keyword)
+      )
+    ) {
+      return subject;
+    }
 
-  return "DSA";
-
-}
-
-  if (
-    upperText.includes("DBMS") ||
-    upperText.includes("SQL") ||
-    upperText.includes("NORMALIZATION")
-  ) {
-    return "DBMS";
   }
 
-  if (
-    upperText.includes("OS") ||
-    upperText.includes("DEADLOCK") ||
-    upperText.includes("SCHEDULING")
-  ) {
-    return "OPERATING SYSTEMS";
-  }
-
-  if (
-    upperText.includes("CN") ||
-    upperText.includes("TCP") ||
-    upperText.includes("OSI")
-  ) {
-    return "COMPUTER NETWORKS";
-  }
- if (
-  upperText.includes("PYTHON")
-) {
-  return "Python";
-}
-  if (
-    upperText.includes("JAVA") ||
-upperText.includes("OOPS") ||
-upperText.includes("JVM") ||
-upperText.includes("JDK")
-  ) {
-    return "Java";
-  }
-
-  if (
-    upperText.includes("COMPILER")
-  ) {
-    return "COMPILER DESIGN";
-  }
-if (
- upperText.includes("REACT") ||
-upperText.includes("JSX") ||
-upperText.includes("HOOK") ||
-upperText.includes("COMPONENT")
-){
- return "ReactJS";
-}
-if (
- upperText.includes("JAVASCRIPT")
-){
- return "JavaScript";
-}
-
-if (
- upperText.includes("HTML") ||
- upperText.includes("CSS")
-){
- return "FRONTEND DEVELOPMENT";
-}
   return "";
 
 };
@@ -728,9 +686,7 @@ const extractTextFromImage =
 
     try {
 
-      toast.loading(
-        "Detecting topic..."
-      );
+      const loading = toast.loading("Detecting topic...");
 
       const result =
         await Tesseract.recognize(
@@ -738,7 +694,7 @@ const extractTextFromImage =
           "eng"
         );
 
-      toast.dismiss();
+      toast.dismiss(loading);
 
       const rawText =
         result.data.text;
@@ -978,37 +934,36 @@ if (!title.trim()) {
     "Uploading snap..."
   );
 
-  await axios.post(
-  `${process.env.REACT_APP_API_URL}/api/snaps`,
-  formData,
-  {
-   
-headers: {
- Authorization:
- `Bearer ${localStorage.getItem("token")}`
-}     
-      })
-    
-  
+ await axios.post(
 
+  `${process.env.REACT_APP_API_URL}/api/snaps`,
+
+  formData,
+
+  authHeader
+
+);
+    
   toast.dismiss();
 
   toast.success(
     "Snap uploaded successfully!"
   );
 
-  fetchSnaps();
-
   // RESET FORM
 
-  setTitle("");
-  setVideoUrl("");
-  setTimestamp("");
-  setImage(null);
-  setNote("");
-  setCategory("");
-  setChannelName("");
+  const resetForm = () => {
 
+   setTitle("");
+   setVideoUrl("");
+   setTimestamp("");
+   setImage(null);
+   setNote("");
+   setCategory("");
+   setChannelName("");
+
+};
+resetForm();
 } 
 catch (error) {
 
@@ -1057,20 +1012,17 @@ catch (error) {
 const updateSnap = async (id) => {
 
   try {
-    await axios.put(`${process.env.REACT_APP_API_URL}/api/snaps/${id}`,
-      editForm,
-      {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`
-        }
-      }
-    );
-
+   
+await axios.put(
+  `${process.env.REACT_APP_API_URL}/api/snaps/${id}`,
+  editForm,
+  authHeader
+);
     toast.success(
       "Snap updated successfully!"
     );
     setEditingId(null);
-    fetchSnaps();
+    
   } catch (error) {
     console.log(
       error.response?.data || error
@@ -1081,41 +1033,42 @@ const updateSnap = async (id) => {
     );
   }
 };
-  const updateStatus = async ( id,status) => {
+  
+const updateStatus = async (id, status) => {
+
   try {
-    await axios.put(`${process.env.REACT_APP_API_URL}/api/snaps/${id}`,
-      { status },
-      {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`
-        }
-      }
-    );
+
+   await axios.put(
+  `${process.env.REACT_APP_API_URL}/api/snaps/${id}`,
+  { status },
+  authHeader
+);
+
     await fetchSnaps();
 
-toast.success(`Marked as ${status}`);
-fetchSnaps();
-  } catch (error) {
-    console.log(
-      error.response?.data || error
-    );
-    toast.error(
-      "Status update failed"
-    );
+    toast.success(`Marked as ${status}`);
+
   }
+
+  catch (error) {
+
+    console.log(error.response?.data || error);
+
+    toast.error("Status update failed");
+
+  }
+
 };
+  
   /* ===================================
      DELETE SNAP
   =================================== */
 
   const deleteSnap = async (id) => {
     try {
-    await axios.delete(`${process.env.REACT_APP_API_URL}/api/snaps/${id}`,
-  {
-    headers: {
-      Authorization: `Bearer ${localStorage.getItem("token")}`
-    }
-  }
+   await axios.delete(
+  `${process.env.REACT_APP_API_URL}/api/snaps/${id}`,
+  authHeader
 );
 toast.success("Snap deleted successfully!");
 setEditingId(null);
@@ -1128,7 +1081,7 @@ setEditForm({
   category: "",
   channelName: ""
 });
-      fetchSnaps();
+      
     } catch (error) {
       console.log(
         error.response?.data || error
@@ -2514,9 +2467,16 @@ fill="#f59e0b"
     element={<ResetPassword />}
 />
 
+<Route
+    path="/verify-email/:token"
+    element={<VerifyEmail />}
+/>
+
 </Routes>
 
 );
 
 }
 export default App;
+
+

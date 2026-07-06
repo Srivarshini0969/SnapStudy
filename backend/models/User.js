@@ -20,13 +20,26 @@ trim:true
   required: true,
   trim:true
 },
-  resetPasswordToken: String,
-  
-  resetPasswordExpires: Date,
-  password: {
+ 
+password: {
     type: String,
     required: true
-  }
+},
+
+resetPasswordToken: String,
+resetPasswordExpires: Date,
+
+// Email Verification
+isVerified: {
+    type: Boolean,
+    default: false
+},
+
+verificationToken: String,
+
+verificationExpires: Date
+
+ 
 
 });
 

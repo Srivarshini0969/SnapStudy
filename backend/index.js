@@ -51,7 +51,6 @@ cloudinary.config({
 =================================== */
 
 mongoose.connect(process.env.MONGO_URI, {
-
   serverSelectionTimeoutMS: 5000,
 
   socketTimeoutMS: 45000
@@ -248,11 +247,11 @@ app.post("/api/auth/register", async (req, res) => {
     email = email?.trim().toLowerCase();
     secretName = secretName?.trim();
 
-    const emailRegex = /^[a-zA-Z0-9._%+-]+@(gmail|yahoo|outlook|hotmail)\.com$/;
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@gmail\.com$/;
 
     if (!emailRegex.test(email)) {
       return res.status(400).json({
-        message: "Only gmail, yahoo, outlook, or hotmail addresses allowed"
+        message: "Only Gmail addresses are allowed"
       });
     }
 
@@ -276,15 +275,43 @@ app.post("/api/auth/register", async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
     const hashedSecretName = await bcrypt.hash(secretName, 10);
 
-    const newUser = new User({ name, email, password: hashedPassword, secretName: hashedSecretName });
-    await newUser.save();
+    const verificationToken = crypto.randomBytes(32).toString("hex");
+    
+    const newUser = new User({ name, email, password: hashedPassword, secretName: hashedSecretName, verificationToken, verificationExpires: Date.now() + 24 * 60 * 60 * 1000
 
-    const token = jwt.sign({ id: newUser._id }, JWT_SECRET, { expiresIn: "7d" });
+    });
+    await newUser.save();
+const verifyLink =
+`${process.env.FRONTEND_URL}/verify-email/${verificationToken}`;
+
+await resend.emails.send({
+
+from:"onboarding@resend.dev",
+
+to:email,
+
+subject:"Verify your SnapStudy Account",
+
+html:`
+
+<h2>Welcome to SnapStudy</h2>
+
+<p>Please verify your email.</p>
+
+<a href="${verifyLink}">
+Verify Email
+</a>
+
+`
+
+});
 
     res.status(201).json({
-      token,
-      user: { id: newUser._id, name: newUser.name, email: newUser.email }
-    });
+
+message:
+"Registration successful. Please verify your email."
+
+});
 
   } catch (error) {
     console.log(error);
@@ -309,11 +336,11 @@ password
 
 email = email.trim().toLowerCase();
 
-const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const emailRegex = /^[a-zA-Z0-9._%+-]+@gmail\.com$/;
 
 if (!emailRegex.test(email)) {
   return res.status(400).json({
-    message: "Please enter a valid email address"
+    message: "Only Gmail addresses are allowed"
   });
 }
 
@@ -331,6 +358,17 @@ const user = await User.findOne({
         });
 
       }
+
+if(!user.isVerified){
+
+return res.status(400).json({
+
+message:
+"Please verify your email before logging in."
+
+});
+
+}
 
       const isMatch =
         await bcrypt.compare(
@@ -411,11 +449,11 @@ secretName
 
 email=email.trim().toLowerCase();
 secretName=secretName.trim();
-const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const emailRegex = /^[a-zA-Z0-9._%+-]+@gmail\.com$/;
 
 if (!emailRegex.test(email)) {
   return res.status(400).json({
-    message: "Please enter a valid email address"
+    message: "Only Gmail addresses are allowed"
   });
 }
 if (!email || !secretName) {
@@ -429,6 +467,11 @@ const user = await User.findOne({ email });
 if (!user) {
   return res.status(404).json({
     message: "User not found"
+  });
+}
+ if (!user.isVerified) {
+  return res.status(403).json({
+    message: "Please verify your email before logging in."
   });
 }
 
@@ -559,6 +602,71 @@ async (req, res) => {
 
 });
 
+/* ===================================
+   VERIFY EMAIL
+=================================== */
+
+app.get(
+"/api/auth/verify/:token",
+
+async(req,res)=>{
+
+try{
+
+const user =
+await User.findOne({
+
+verificationToken:
+req.params.token,
+
+verificationExpires:{
+$gt:Date.now()
+}
+
+});
+
+if(!user){
+
+return res.status(400).json({
+
+message:
+"Invalid or expired verification link"
+
+});
+
+}
+
+user.isVerified=true;
+
+user.verificationToken=undefined;
+
+user.verificationExpires=undefined;
+
+await user.save();
+
+res.json({
+
+message:
+"Email verified successfully"
+
+});
+
+}
+
+catch(error){
+
+console.log(error);
+
+res.status(500).json({
+
+message:
+"Verification failed"
+
+});
+
+}
+
+});
 
 /* ===================================
    GET SNAPS
