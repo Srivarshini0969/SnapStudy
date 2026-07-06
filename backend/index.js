@@ -268,21 +268,32 @@ app.post("/api/auth/register", async (req, res) => {
     }
 
     const existingUser = await User.findOne({ email });
-    if (existingUser) {
+
+    if (existingUser?.isVerified) {
       return res.status(400).json({ message: "User already exists" });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
     const hashedSecretName = await bcrypt.hash(secretName, 10);
-
     const verificationToken = crypto.randomBytes(32).toString("hex");
-    
-    const newUser = new User({ name, email, password: hashedPassword, secretName: hashedSecretName, verificationToken, verificationExpires: Date.now() + 24 * 60 * 60 * 1000
 
-    });
-    await newUser.save();
+    const user = existingUser || new User({ email });
+
+    user.name = name;
+    user.password = hashedPassword;
+    user.secretName = hashedSecretName;
+    user.verificationToken = verificationToken;
+    user.verificationExpires = Date.now() + 24 * 60 * 60 * 1000;
+    user.isVerified = false;
+
+    await user.save();
+
 const verifyLink =
 `${process.env.FRONTEND_URL}/verify-email/${verificationToken}`;
+
+let emailSent = true;
+
+try {
 
 await resend.emails.send({
 
@@ -306,10 +317,19 @@ Verify Email
 
 });
 
+} catch (mailError) {
+
+emailSent = false;
+console.log("Verification email failed:", mailError);
+
+}
+
     res.status(201).json({
 
-message:
-"Registration successful. Please verify your email."
+message: emailSent
+? "Registration successful. Please verify your email."
+: "Registration saved, but verification email could not be sent. Use the verification link below.",
+verificationLink: emailSent ? undefined : verifyLink
 
 });
 
@@ -969,3 +989,4 @@ app.put(
 
   }
 );
+

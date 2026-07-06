@@ -14,7 +14,7 @@ import {
 
 import ResetPassword from "./ResetPassword";
 import VerifyEmail from "./pages/VerifyEmail";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Route, Routes } from "react-router-dom";
 
 import axios from "axios";
@@ -167,95 +167,80 @@ const [forgotEmail, setForgotEmail] =
    FETCH SNAPS
 =================================== */
 
-const fetchSnaps = async () => {
-
+const fetchSnaps = useCallback(async () => {
   try {
-
     const response = await axios.get(
       `${process.env.REACT_APP_API_URL}/api/snaps`,
-      authHeader
+      {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`
+        }
+      }
     );
 
     setSnaps(response.data);
-
   } catch (error) {
-
     console.log(error.response?.data || error);
-
   }
+}, []);
 
-};
+/* ===================================
+   WATCH SNAP
+=================================== */
 
-  /* ===================================
-     WATCH SNAP
-  =================================== */
-
-  const watchSnap = async (snap) => {
-
-    try {
-
-      await axios.put(
-        `${process.env.REACT_APP_API_URL}/api/snaps/view/${snap._id}`,
-        {},
-        authHeader
-      );
-
-      if (snap.videoUrl) {
-
-        window.open(
-          snap.watchLink || snap.videoUrl,
-          "_blank"
-        );
-
-      } else {
-
-        const searchQuery =
-          `${snap.title || ""} ${snap.category || ""} lecture`;
-
-        const youtubeUrl =
-          `https://www.youtube.com/results?search_query=${encodeURIComponent(searchQuery)}`;
-
-        window.open(
-          youtubeUrl,
-          "_blank"
-        );
-
+const watchSnap = async (snap) => {
+  try {
+    await axios.put(
+      `${process.env.REACT_APP_API_URL}/api/snaps/view/${snap._id}`,
+      {},
+      {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`
+        }
       }
+    );
 
-      fetchSnaps();
+    if (snap.videoUrl) {
+      window.open(
+        snap.watchLink || snap.videoUrl,
+        "_blank"
+      );
+    } else {
+      const searchQuery =
+        `${snap.title || ""} ${snap.category || ""} lecture`;
 
-    } catch (error) {
+      const youtubeUrl =
+        `https://www.youtube.com/results?search_query=${encodeURIComponent(searchQuery)}`;
 
-      console.log(error.response?.data || error);
-
+      window.open(
+        youtubeUrl,
+        "_blank"
+      );
     }
 
-  };
+    await fetchSnaps();
+  } catch (error) {
+    console.log(error.response?.data || error);
+  }
+};
+
 /* ===================================
    PAGE LOAD
 =================================== */
 
 useEffect(() => {
+  const savedUser =
+    localStorage.getItem("user");
 
- const savedUser =
- localStorage.getItem("user");
-
- try{
-
-   if(savedUser){
-
+  try {
+    if (savedUser) {
       setUser(
         JSON.parse(savedUser)
       );
-
-   }
-
- }catch{
-
-   localStorage.removeItem("user");
-
- }
-
+    }
+  } catch {
+    localStorage.removeItem("user");
+  }
 }, []);
 
 /* ===================================
@@ -263,46 +248,30 @@ useEffect(() => {
 =================================== */
 
 useEffect(() => {
-
   if (user) {
-
-
     fetchSnaps();
-
   }
-
-}, [user]);
+}, [user, fetchSnaps]);
 
 /* ===================================
    STUDY TIMER
 =================================== */
 
 useEffect(() => {
-
   if (!user) return;
 
-  const timer =
-    setInterval(() => {
+  const timer = setInterval(() => {
+    setStudyTime((prev) => prev + 1);
+  }, 1000);
 
-      setStudyTime(
-        (prev) => prev + 1
-      );
-
-    }, 1000);
-
-
-  return () =>
-    clearInterval(timer);
-
+  return () => clearInterval(timer);
 }, [user]);
 
 useEffect(() => {
-
   localStorage.setItem(
     "studyTime",
     studyTime
   );
-
 }, [studyTime]);
 
  /*quote*/
@@ -448,11 +417,20 @@ const handleAuth = async (e) => {
   const email = authEmail.trim().toLowerCase();
 
 const emailRegex =
-/^[a-zA-Z0-9._%+-]+@gmail\.com$/;
+/^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 if (!emailRegex.test(email)) {
-    toast.error("Only Gmail addresses are allowed");
+    toast.error("Enter a valid email address");
     return;
+}
+
+if (!emailRegex.test(authEmail)) {
+
+  toast.error(
+    "Enter valid email"
+  );
+
+  return;
 }
 
 if (authPassword.length < 6) {
@@ -952,19 +930,23 @@ if (!title.trim()) {
 
   // RESET FORM
 
-  const resetForm = () => {
+toast.dismiss();
 
-   setTitle("");
-   setVideoUrl("");
-   setTimestamp("");
-   setImage(null);
-   setNote("");
-   setCategory("");
-   setChannelName("");
+toast.success(
+  "Snap uploaded successfully!"
+);
 
-};
-resetForm();
-} 
+await fetchSnaps();
+
+setTitle("");
+setVideoUrl("");
+setTimestamp("");
+setImage(null);
+setNote("");
+setCategory("");
+setChannelName("");
+
+}
 catch (error) {
 
   toast.dismiss();
@@ -978,9 +960,11 @@ catch (error) {
   toast.error(
     error.response?.data?.message || "Upload failed"
   );
-    }
         
   }
+};
+
+const submitSnap = handleSubmit;
 
   /* ===================================
      START EDIT
@@ -1547,7 +1531,7 @@ Logout
   `}
 >
       <form
-        onSubmit={handleSubmit}
+        onSubmit={submitSnap}
         className="flex flex-col gap-5"
       >
  <div
@@ -2478,5 +2462,3 @@ fill="#f59e0b"
 
 }
 export default App;
-
-
