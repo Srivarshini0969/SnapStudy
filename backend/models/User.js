@@ -37,7 +37,17 @@ isVerified: {
 
 verificationToken: String,
 
-verificationExpires: Date
+verificationExpires: Date,
+
+googleId: String,
+
+authProvider: {
+    type: String,
+    enum: ["local", "google"],
+    default: "local"
+},
+
+avatar: String
 
  
 
