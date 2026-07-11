@@ -16,8 +16,9 @@ import ResetPassword from "./ResetPassword";
 import VerifyEmail from "./pages/VerifyEmail";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Route, Routes } from "react-router-dom";
-
+import formatTimestamp from "./utils/formatTimestamp";
 import axios from "axios";
+import { GoogleLogin } from "@react-oauth/google";
 import toast, { Toaster } from "react-hot-toast";
 import Tesseract from "tesseract.js";
 import SearchYoutube from "youtube-search-api";
@@ -57,6 +58,7 @@ const [forgotSecretName,
     useState("");
 
     const [resetLink, setResetLink] = useState("");
+    const [verificationLink, setVerificationLink] = useState("");
 
 const authHeader = {
   headers: {
@@ -93,6 +95,9 @@ const [showForgotPassword, setShowForgotPassword] =
 const [forgotEmail, setForgotEmail] =
   useState("");
 
+const googleClientId =
+  process.env.REACT_APP_GOOGLE_CLIENT_ID;
+
   /* ===================================
      DATA STATES
   =================================== */
@@ -126,42 +131,7 @@ const [forgotEmail, setForgotEmail] =
 
     });
 
-  /* ===================================
-     FORMAT TIMESTAMP
-  =================================== */
-
-  const formatTimestamp = (seconds) => {
-
-    if (!seconds && seconds !== 0)
-      return "";
-
-    const hrs =
-      Math.floor(seconds / 3600);
-
-    const mins =
-      Math.floor(
-        (seconds % 3600) / 60
-      );
-
-    const secs =
-      seconds % 60;
-
-    // hh:mm:ss
-    if (hrs > 0) {
-
-      return `${hrs}:${
-        mins.toString().padStart(2, "0")
-      }:${
-        secs.toString().padStart(2, "0")
-      }`;
-
-    }
-
-    // mm:ss
-    return `${mins}:${
-      secs.toString().padStart(2, "0")
-    }`;
-  };
+  
 
   /* ===================================
    FETCH SNAPS
@@ -417,20 +387,11 @@ const handleAuth = async (e) => {
   const email = authEmail.trim().toLowerCase();
 
 const emailRegex =
-/^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+/^[a-zA-Z0-9._%+-]+@gmail\.com$/;
 
 if (!emailRegex.test(email)) {
-    toast.error("Enter a valid email address");
+    toast.error("Only Gmail addresses are allowed");
     return;
-}
-
-if (!emailRegex.test(authEmail)) {
-
-  toast.error(
-    "Enter valid email"
-  );
-
-  return;
 }
 
 if (authPassword.length < 6) {
@@ -446,6 +407,27 @@ if (authPassword.length < 6) {
   `${process.env.REACT_APP_API_URL}/api/auth/${endpoint}`,
   payload
 );
+
+    if (!isLogin) {
+
+      toast.success(
+        response.data.message ||
+        "Registration successful. Please verify your email."
+      );
+
+      setVerificationLink(
+        response.data.verificationLink || ""
+      );
+
+      setIsLogin(true);
+      setAuthName("");
+      setAuthEmail("");
+      setAuthPassword("");
+      setRegisterSecretName("");
+
+      return;
+
+    }
 
 
     /*----------------------------------------
@@ -467,12 +449,7 @@ if (authPassword.length < 6) {
     setUser(
       response.data.user
     );
-    toast.success(
-      isLogin
-        ? "Login successful!"
-        : "Registration successful!"
-
-    );
+    toast.success("Login successful!");
 
     /*----------------------------------------
       RESET FORM
@@ -486,11 +463,75 @@ if (authPassword.length < 6) {
     console.log(
       error.response?.data || error
     );
+
+    setVerificationLink(
+      error.response?.data?.verificationLink || ""
+    );
+
     toast.error(
       error.response?.data?.message ||
       "Authentication failed"
     );
   }
+};
+
+/* ===================================
+   GOOGLE AUTH
+=================================== */
+
+const handleGoogleAuth = async (credentialResponse) => {
+
+  try {
+
+    if (!credentialResponse.credential) {
+      toast.error("Google sign-in failed");
+      return;
+    }
+
+    const response = await axios.post(
+      `${process.env.REACT_APP_API_URL}/api/auth/google`,
+      {
+        credential: credentialResponse.credential
+      }
+    );
+
+    localStorage.setItem(
+      "token",
+      response.data.token
+    );
+
+    localStorage.setItem(
+      "user",
+      JSON.stringify(response.data.user)
+    );
+
+    setUser(response.data.user);
+    setVerificationLink("");
+    setShowForgotPassword(false);
+    setAuthName("");
+    setAuthEmail("");
+    setAuthPassword("");
+    setRegisterSecretName("");
+
+    toast.success("Google login successful!");
+
+  } catch (error) {
+
+    console.log(error.response?.data || error);
+
+    toast.error(
+      error.response?.data?.message ||
+      "Google authentication failed"
+    );
+
+  }
+
+};
+
+const handleMissingGoogleConfig = () => {
+  toast.error(
+    "Google sign-in needs your Google OAuth Client ID once. Password login still works."
+  );
 };
 
 /* ===================================
@@ -930,11 +971,6 @@ if (!title.trim()) {
 
   // RESET FORM
 
-toast.dismiss();
-
-toast.success(
-  "Snap uploaded successfully!"
-);
 
 await fetchSnaps();
 
@@ -992,29 +1028,22 @@ const submitSnap = handleSubmit;
   /* ===================================
      UPDATE SNAP
   =================================== */
-
 const updateSnap = async (id) => {
-
   try {
-   
-await axios.put(
-  `${process.env.REACT_APP_API_URL}/api/snaps/${id}`,
-  editForm,
-  authHeader
-);
-    toast.success(
-      "Snap updated successfully!"
+    await axios.put(
+      `${process.env.REACT_APP_API_URL}/api/snaps/${id}`,
+      {
+        title: editForm.title,
+        note: editForm.note,
+        category: editForm.category
+      },
+      authHeader
     );
+    toast.success("Snap updated successfully!");
     setEditingId(null);
-    
   } catch (error) {
-    console.log(
-      error.response?.data || error
-    );
-
-    toast.error(
-      "Update failed"
-    );
+    console.log(error.response?.data || error);
+    toast.error("Update failed");
   }
 };
   
@@ -1334,6 +1363,50 @@ className="bg-blue-600 hover:bg-blue-700 transition duration-300 text-white py-3
             : "Register"
         }
       </button>
+
+      <div className="flex justify-center">
+        {
+          googleClientId ? (
+            <GoogleLogin
+              onSuccess={handleGoogleAuth}
+              onError={() =>
+                toast.error("Google sign-in failed")
+              }
+              text={
+                isLogin
+                  ? "signin_with"
+                  : "signup_with"
+              }
+              theme="outline"
+              size="large"
+              shape="rectangular"
+              width="360"
+            />
+          ) : (
+            <button
+              type="button"
+              onClick={handleMissingGoogleConfig}
+              className={`w-full border py-3 rounded-lg font-medium flex items-center justify-center gap-3
+                ${
+                  darkMode
+                    ? "bg-gray-700 text-white border-gray-500"
+                    : "bg-white text-gray-800 border-gray-300"
+                }
+              `}
+            >
+              <span className="text-xl font-bold text-blue-600">
+                G
+              </span>
+              {
+                isLogin
+                  ? "Sign in with Google"
+                  : "Sign up with Google"
+              }
+            </button>
+          )
+        }
+      </div>
+
       {
         isLogin && (
           <button
@@ -1354,6 +1427,16 @@ className="bg-blue-600 hover:bg-blue-700 transition duration-300 text-white py-3
 
   )
 }
+      {
+        verificationLink && (
+          <a
+            href={verificationLink}
+            className="bg-green-500 text-white py-3 rounded-lg text-center block mt-4"
+          >
+            Click here to Verify Email
+          </a>
+        )
+      }
    <p className="text-center mt-4">
           {
             isLogin
@@ -1361,9 +1444,10 @@ className="bg-blue-600 hover:bg-blue-700 transition duration-300 text-white py-3
               : "Already have an account?"
           }
           <button
-         onClick={() =>
-      setIsLogin(!isLogin)
-            }
+         onClick={() => {
+      setIsLogin(!isLogin);
+      setVerificationLink("");
+            }}
   className="text-blue-600 ml-2"
       >
             {
@@ -1699,10 +1783,9 @@ Logout
 <option value="NodeJS">
   NodeJS
 </option>
-
-          <option value="DBMS">
-            DBMS
-          </option>
+ <option value="DBMS">
+  DBMS
+ </option>
 <option value="FRONTEND DEVELOPMENT">
             FRONTEND DEVELOPMENT
           </option>
@@ -1758,8 +1841,9 @@ Logout
     )
   }
 </div>
-
-
+   
+   {user && (
+<> 
          {/* SEARCH + FILTERS */}
 
         <div className="max-w-lg mx-auto mt-10">
@@ -2432,17 +2516,15 @@ fill="#f59e0b"
            
 
         </div>
-
-      
-
-        
-      
+</>
+)
     
 
-     </div>
+}
 
-    </>
+</div>
 
+</>
 }
 />
 
