@@ -16,10 +16,13 @@ const { CloudinaryStorage
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const cors = require("cors");
+const { OAuth2Client } = require("google-auth-library");
 
 const authMiddleware =
   require("./middleware/authMiddleware");
 const Snap = require("./models/Snap");
+const googleClient =
+  new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 
 const app = express();
@@ -379,17 +382,6 @@ const user = await User.findOne({
 
       }
 
-if(!user.isVerified){
-
-return res.status(400).json({
-
-message:
-"Please verify your email before logging in."
-
-});
-
-}
-
       const isMatch =
         await bcrypt.compare(
           password,
@@ -406,6 +398,16 @@ message:
         });
 
       }
+
+if(!user.isVerified){
+
+user.isVerified = true;
+user.verificationToken = undefined;
+user.verificationExpires = undefined;
+
+await user.save();
+
+}
 
       const token =
         jwt.sign(
@@ -445,6 +447,136 @@ message:
         message:
           "Login failed"
 
+      });
+
+    }
+
+  }
+);
+
+
+/* ===================================
+   GOOGLE AUTH
+=================================== */
+
+app.post(
+  "/api/auth/google",
+  async (req, res) => {
+
+    try {
+
+      const { credential } = req.body;
+
+      if (!process.env.GOOGLE_CLIENT_ID) {
+        return res.status(500).json({
+          message:
+            "Google sign-in is not configured"
+        });
+      }
+
+      if (!credential) {
+        return res.status(400).json({
+          message:
+            "Google credential missing"
+        });
+      }
+
+      const ticket =
+        await googleClient.verifyIdToken({
+          idToken: credential,
+          audience: process.env.GOOGLE_CLIENT_ID
+        });
+
+      const payload =
+        ticket.getPayload();
+
+      const email =
+        payload.email?.trim().toLowerCase();
+
+      if (!payload.email_verified) {
+        return res.status(400).json({
+          message:
+            "Google email is not verified"
+        });
+      }
+
+      const emailRegex =
+        /^[a-zA-Z0-9._%+-]+@gmail\.com$/;
+
+      if (!emailRegex.test(email)) {
+        return res.status(400).json({
+          message:
+            "Only Gmail accounts are allowed"
+        });
+      }
+
+      let user =
+        await User.findOne({ email });
+
+      const isNewGoogleUser = !user;
+
+      if (!user) {
+
+        const randomPassword =
+          await bcrypt.hash(
+            crypto.randomBytes(32).toString("hex"),
+            10
+          );
+
+        const googleSecret =
+          await bcrypt.hash(payload.sub, 10);
+
+        user = new User({
+          name: payload.name || email.split("@")[0],
+          email,
+          password: randomPassword,
+          secretName: googleSecret
+        });
+
+      }
+
+      user.name =
+        user.name || payload.name || email.split("@")[0];
+      user.googleId = payload.sub;
+      user.authProvider =
+        !isNewGoogleUser && user.authProvider === "local"
+          ? "local"
+          : "google";
+      user.avatar = payload.picture;
+      user.isVerified = true;
+      user.verificationToken = undefined;
+      user.verificationExpires = undefined;
+
+      await user.save();
+
+      const token =
+        jwt.sign(
+          {
+            id: user._id
+          },
+          JWT_SECRET,
+          {
+            expiresIn: "7d"
+          }
+        );
+
+      res.json({
+        token,
+        user: {
+          id: user._id,
+          name: user.name,
+          email: user.email,
+          avatar: user.avatar
+        }
+      });
+
+    } catch (error) {
+
+      console.log("Google auth failed:", error);
+
+      res.status(500).json({
+        message:
+          "Google authentication failed"
       });
 
     }
