@@ -936,9 +936,6 @@ if (
     ? req.file.path
     : null,
 
-          lastViewed:
-            new Date(),
-
           status:
             "Pending"
 
