@@ -717,8 +717,11 @@ const extractTextFromImage =
 
       const rawText =
         result.data.text;
+        console.log("OCR Text");
+        console.log(rawText);
 const cleanedText =
 rawText
+.replace(/[|]/g,"I")
 .replace(/[^a-zA-Z0-9\s]/g," ")
 .replace(/\s+/g," ")
 .trim();
@@ -730,45 +733,62 @@ rawText
     .filter(line => line.length > 3);
 
   const stopWords = [
-    "department",
-    "university",
-    "college",
-    "faculty",
-    "semester",
-    "academic",
-    "year",
-    "session",
-    "lecture",
-    "page",
-    "www",
-    "http",
-    "copyright",
-    "slide",
-    "unit"
-  ];
 
-  const topic =
-    lines.find(line => {
+"department",
+"university",
+"college",
+"faculty",
+"semester",
+"academic",
+"year",
+"session",
+"lecture",
+"page",
+"slide",
+"copyright",
+"http",
+"https",
+"www",
+"chapter",
+"topic",
+"today",
+"class",
+"notes",
+"professor",
+"assistant",
+"course",
+"unit",
+"week"
 
-      const lower = line.toLowerCase();
+];
 
-      if (line.length < 5 || line.length > 60)
-        return false;
+  const candidateLines = lines.filter(line => {
 
-      if (stopWords.some(word => lower.includes(word)))
-        return false;
+  const lower = line.toLowerCase();
 
-      const words = line.split(/\s+/);
+  if (line.length < 5 || line.length > 80)
+    return false;
 
-      return words.length >= 2 && words.length <= 8;
+  if (stopWords.some(word => lower.includes(word)))
+    return false;
 
-    }) || lines[0];
+  const words = line.split(/\s+/);
+
+  return words.length >= 2 && words.length <= 10;
+
+});
+
+const topic =
+candidateLines.sort(
+(a,b)=>b.length-a.length
+)[0] || "";
+
 const invalidTopic =
-  !topic ||
-  topic.length < 6 ||
-  topic.split(" ").length < 2 ||
-  /^[^a-zA-Z]+$/.test(topic);
-
+!topic ||
+topic.length < 5 ||
+topic.split(" ").length < 2 ||
+/^\d+$/.test(topic) ||
+/^[^a-zA-Z]+$/.test(topic);
 if (invalidTopic) {
 
 toast.error(
