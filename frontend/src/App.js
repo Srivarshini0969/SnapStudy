@@ -708,10 +708,11 @@ const extractTextFromImage =
       const loading = toast.loading("Detecting topic...");
 
       const result =
-        await Tesseract.recognize(
-          file,
-          "eng"
-        );
+        await Tesseract.recognize(file,"eng",{
+
+ logger:m=>console.log(m)
+
+});
 
       toast.dismiss(loading);
 
@@ -719,18 +720,23 @@ const extractTextFromImage =
         result.data.text;
         console.log("OCR Text");
         console.log(rawText);
-const cleanedText =
+
+        const cleanedText =
 rawText
-.replace(/[|]/g,"I")
-.replace(/[^a-zA-Z0-9\s]/g," ")
-.replace(/\s+/g," ")
+.replace(/[|]/g, "I")
+.replace(/[^a-zA-Z0-9\s-]/g, " ")
+.replace(/\s+/g, " ")
 .trim();
+
      if (cleanedText) {
 
-  const lines = rawText
-    .split("\n")
-    .map(line => line.trim())
-    .filter(line => line.length > 3);
+const lines = rawText
+  .split("\n")
+  .map(line => line.trim())
+  .filter(line => line.length > 2)
+  .map(line =>
+    line.replace(/\s+/g, " ")
+  );
 
   const stopWords = [
 
@@ -762,33 +768,186 @@ rawText
 
 ];
 
+const headingKeywords = [
+
+  "Binary Tree",
+  "Binary Tree Array",
+  "Bottom up Parsing",
+  "Top down Parsing",
+  "AVL Tree",
+  "BST",
+  "Heap",
+  "Graph",
+  "DFS",
+  "BFS",
+  "Recursion",
+  "Dynamic Programming",
+  "Compiler Design",
+  "Lexical Analysis",
+  "Syntax Analysis",
+  "Parsing",
+  "Deadlock",
+  "Process Scheduling",
+  "Normalization",
+  "ER Diagram",
+  "SQL",
+  "TCP",
+  "UDP",
+  "OSI Model",
+  "React Hooks",
+  "Promises",
+  "Express JS",
+  "Implementation",
+"Algorithm",
+"Data Structure",
+"Binary Search",
+"Merge Sort",
+"Quick Sort",
+"Insertion Sort",
+"Selection Sort",
+"Bubble Sort",
+"Linked List",
+"Stack",
+"Queue",
+"Hash Table",
+"Greedy",
+"Backtracking",
+"Finite Automata",
+"Shift Reduce Parsing",
+"Operator Precedence",
+"LL Parser",
+"LR Parser",
+  "MongoDB"
+
+];
+
+let topic = "";
+
+/* ---------- Priority 1 ----------
+   Check whether OCR already contains
+   a well-known CS topic.
+---------------------------------*/
+
+for (const heading of headingKeywords) {
+
+  if (
+    cleanedText
+      .toLowerCase()
+      .includes(heading.toLowerCase())
+  ) {
+
+    topic = heading;
+    break;
+
+  }
+
+}
+
+if (!topic) {
+
+  for (const line of lines) {
+
+    for (const heading of headingKeywords) {
+
+      if (
+        line
+          .toLowerCase()
+          .includes(heading.toLowerCase())
+      ) {
+
+        topic = heading;
+        break;
+
+      }
+
+    }
+
+    if (topic) break;
+
+  }
+
+}
+
+/* ---------- Priority 2 ----------
+   If not found, intelligently score
+   every OCR line.
+---------------------------------*/
+
+if (!topic) {
+
   const candidateLines = lines.filter(line => {
 
-  const lower = line.toLowerCase();
+    const lower = line.toLowerCase();
 
-  if (line.length < 5 || line.length > 80)
-    return false;
+    if (line.length < 4) return false;
 
-  if (stopWords.some(word => lower.includes(word)))
-    return false;
+    if (line.length > 80) return false;
 
-  const words = line.split(/\s+/);
+    if (
+      stopWords.some(word =>
+        lower.includes(word)
+      )
+    )
+      return false;
 
-  return words.length >= 2 && words.length <= 10;
+    if (/^[0-9\s]+$/.test(line))
+      return false;
 
-});
+    return true;
 
-const topic =
-candidateLines.sort(
-(a,b)=>b.length-a.length
-)[0] || "";
+  });
+
+  topic =
+    candidateLines.sort((a, b) => {
+
+      let scoreA = 0;
+      let scoreB = 0;
+
+      scoreA += a.length;
+      scoreB += b.length;
+
+      scoreA += a.split(" ").length * 5;
+      scoreB += b.split(" ").length * 5;
+
+      if (/^[A-Z]/.test(a))
+        scoreA += 20;
+
+      if (/^[A-Z]/.test(b))
+        scoreB += 20;
+
+      if (a.includes(":"))
+        scoreA -= 15;
+
+      if (b.includes(":"))
+        scoreB -= 15;
+
+      if (
+        /\b(ex|example|input|output)\b/i.test(a)
+      )
+        scoreA -= 20;
+
+      if (
+        /\b(ex|example|input|output)\b/i.test(b)
+      )
+        scoreB -= 20;
+
+      return scoreB - scoreA;
+
+    })[0] || "";
+
+}
 
 const invalidTopic =
-!topic ||
-topic.length < 5 ||
-topic.split(" ").length < 2 ||
-/^\d+$/.test(topic) ||
-/^[^a-zA-Z]+$/.test(topic);
+
+  !topic ||
+
+  topic.length < 4 ||
+
+  /^[0-9]+$/.test(topic) ||
+
+  /^[^A-Za-z]+$/.test(topic);
+
+
 if (invalidTopic) {
 
 toast.error(
