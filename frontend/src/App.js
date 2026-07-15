@@ -342,13 +342,7 @@ snaps.forEach((snap) => {
 
 });
 
-const barData = Object.entries(analytics).map(
-  ([subject, data]) => ({
-    subject,
-    completed: data.completed,
-    pending: data.total - data.completed,
-  })
-);
+
 /* ===================================
    AUTH SUBMIT
 =================================== */
