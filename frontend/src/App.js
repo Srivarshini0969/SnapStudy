@@ -4,12 +4,7 @@ import {
   Cell,
   Tooltip,
   ResponsiveContainer,
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Legend
+  
 } from "recharts";
 
 import ResetPassword from "./ResetPassword";
@@ -580,125 +575,65 @@ const logout = () => {
 const subjectKeywords = {
 
   DSA: [
-    "ARRAY",
-    "STRING",
-    "RECURSION",
-    "LINKED",
-    "STACK",
-    "QUEUE",
-    "TREE",
-    "GRAPH",
-    "AVL",
-    "BST",
-    "SORTING",
-    "SEARCH",
-    "HEAP",
-    "HASH"
+    "ARRAY", "STRING", "RECURSION", "LINKED", "STACK", "QUEUE",
+    "TREE", "GRAPH", "AVL", "BST", "SORTING", "SEARCH", "HEAP", "HASH",
+    "KRUSKAL", "PRIM", "DIJKSTRA", "FLOYD", "WARSHALL", "GREEDY",
+    "DYNAMIC PROGRAMMING", "BACKTRACKING", "TRIE", "SEGMENT TREE",
+    "BINARY TREE", "BINARY SEARCH TREE", "MST", "MINIMUM SPANNING TREE"
   ],
 
-  Java: [
-    "JAVA",
-    "JVM",
-    "JDK",
-    "OOPS"
-  ],
-
-  Python: [
-    "PYTHON"
-  ],
-
-  JavaScript: [
-    "JAVASCRIPT",
-    "ES6",
-    "PROMISE",
-    "ASYNC"
-  ],
-
-  ReactJS: [
-    "REACT",
-    "JSX",
-    "HOOK",
-    "COMPONENT"
-  ],
-
-  NodeJS: [
-    "NODE",
-    "EXPRESS",
-    "NPM"
-  ],
-
-  DBMS: [
-    "DBMS",
-    "SQL",
-    "NORMALIZATION",
-    "DATABASE"
-  ],
+  Java: ["JAVA", "JVM", "JDK", "OOPS"],
+  Python: ["PYTHON"],
+  JavaScript: ["JAVASCRIPT", "ES6", "PROMISE", "ASYNC"],
+  ReactJS: ["REACT", "JSX", "HOOK", "COMPONENT"],
+  NodeJS: ["NODE", "EXPRESS", "NPM"],
+  DBMS: ["DBMS", "SQL", "NORMALIZATION", "DATABASE"],
 
   "OPERATING SYSTEMS": [
-    "OPERATING SYSTEM",
-    "OS",
-    "DEADLOCK",
-    "SCHEDULING",
-    "PROCESS"
+    "OPERATING SYSTEM", "DEADLOCK", "CPU SCHEDULING",
+    "PROCESS SCHEDULING", "PAGE REPLACEMENT", "SEMAPHORE",
+    "MUTEX", "CRITICAL SECTION", "THRASHING", "VIRTUAL MEMORY"
   ],
 
-  "COMPUTER NETWORKS": [
-    "TCP",
-    "UDP",
-    "OSI",
-    "HTTP",
-    "NETWORK"
-  ],
+  "COMPUTER NETWORKS": ["TCP", "UDP", "OSI", "HTTP", "NETWORK"],
 
   "COMPILER DESIGN": [
-    "COMPILER",
-    "LEXICAL",
-    "PARSER",
-    "SYNTAX"
+    "COMPILER", "LEXICAL", "PARSER", "PARSING", "SYNTAX",
+    "BOTTOM UP", "TOP DOWN", "SHIFT REDUCE", "GRAMMAR"
   ],
 
-  "FRONTEND DEVELOPMENT": [
-    "HTML",
-    "CSS",
-    "BOOTSTRAP"
-  ],
-
-  "BACKEND DEVELOPMENT": [
-    "API",
-    "REST",
-    "MONGODB",
-    "BACKEND"
-  ],
-
-  "AI/ML": [
-    "MACHINE LEARNING",
-    "AI",
-    "NEURAL",
-    "MODEL",
-    "REGRESSION"
-  ]
+  "FRONTEND DEVELOPMENT": ["HTML", "CSS", "BOOTSTRAP"],
+  "BACKEND DEVELOPMENT": ["API", "REST", "MONGODB", "BACKEND"],
+  "AI/ML": ["MACHINE LEARNING", "NEURAL", "REGRESSION"]
 
 };
 
 const detectSubject = (text) => {
 
   const upper = text.toUpperCase();
+  let bestSubject = "";
+  let maxScore = 0;
 
   for (const subject in subjectKeywords) {
 
-    if (
-      subjectKeywords[subject].some(keyword =>
-        upper.includes(keyword)
-      )
-    ) {
-      return subject;
+    let score = 0;
+
+    subjectKeywords[subject].forEach((keyword) => {
+      if (upper.includes(keyword)) score++;
+    });
+
+    if (score > maxScore) {
+      maxScore = score;
+      bestSubject = subject;
     }
 
   }
 
-  return "";
+  return bestSubject;
 
 };
+
+
 
 const extractTextFromImage =
   async (file) => {
@@ -707,13 +642,13 @@ const extractTextFromImage =
 
       const loading = toast.loading("Detecting topic...");
 
-      const result =
-        await Tesseract.recognize(file,"eng",{
-
- logger:m=>console.log(m)
-
-});
-
+const result = await Tesseract.recognize(
+  file,
+  "eng",
+  {
+    logger: m => console.log(m)
+  }
+);
       toast.dismiss(loading);
 
       const rawText =
@@ -898,44 +833,40 @@ if (!topic) {
   });
 
   topic =
-    candidateLines.sort((a, b) => {
+  candidateLines.sort((a, b) => {
 
-      let scoreA = 0;
-      let scoreB = 0;
+    const getScore = (line) => {
 
-      scoreA += a.length;
-      scoreB += b.length;
+      let score = 0;
+      const words = line.split(/\s+/);
 
-      scoreA += a.split(" ").length * 5;
-      scoreB += b.split(" ").length * 5;
+      score += 100 - Math.abs(words.length - 3) * 10;
+      score += 100 - Math.abs(line.length - 25);
 
-      if (/^[A-Z]/.test(a))
-        scoreA += 20;
+      if (/^[A-Z]/.test(line)) score += 20;
+      if (line.endsWith(":")) score += 15;
 
-      if (/^[A-Z]/.test(b))
-        scoreB += 20;
+      if (/[.!?]/.test(line)) score -= 40;
+      if (/\bis\b|\bare\b|\bwas\b|\bwere\b/i.test(line)) score -= 40;
+      if (/\b(ex|example|input|output)\b/i.test(line)) score -= 20;
 
-      if (a.includes(":"))
-        scoreA -= 15;
+      return score;
 
-      if (b.includes(":"))
-        scoreB -= 15;
+    };
 
-      if (
-        /\b(ex|example|input|output)\b/i.test(a)
-      )
-        scoreA -= 20;
+    return getScore(b) - getScore(a);
 
-      if (
-        /\b(ex|example|input|output)\b/i.test(b)
-      )
-        scoreB -= 20;
-
-      return scoreB - scoreA;
-
-    })[0] || "";
+  })[0] || "";
 
 }
+let finalTopic = topic;
+
+finalTopic = finalTopic.replace(/Algor\b/i, "Algorithm");
+finalTopic = finalTopic.replace(/Algorithim/i, "Algorithm");
+finalTopic = finalTopic.replace(/Algoritnm/i, "Algorithm");
+finalTopic = finalTopic.replace(/Krugkal/i, "Kruskal");
+finalTopic = finalTopic.replace(/Krugkald/i, "Kruskal");
+finalTopic = finalTopic.replace(/Kruskal s/i, "Kruskal's");
 
 const invalidTopic =
 
@@ -961,7 +892,7 @@ toast.error(
   const detectedSubject =
     detectSubject(cleanedText);
 
-  setTitle(topic);
+ setTitle(finalTopic);
 
   if (detectedSubject) {
     setCategory(detectedSubject);
@@ -972,14 +903,12 @@ toast.error(
   }
 
   toast.success(
-    `Detected Topic: ${topic}`
+    `Detected Topic: ${finalTopic}`
   );
 
   if (topic && topic.length > 3) {
     await fetchYoutubeVideo(
-      topic,
-      detectedSubject
-    );
+      finalTopic,detectedSubject);
   }
 
 }
@@ -2152,19 +2081,17 @@ darkMode
 </div>
   </div>
 
-        {/* ANALYTICS */}
+   {/* ANALYTICS */}
 <div className="max-w-7xl mx-auto my-14">
 
 <h2 className="text-3xl font-bold text-center mb-8">
 📊 Study Dashboard
 </h2>
 
-<div className="grid md:grid-cols-2 gap-8">
-
-{/* PIE CHART */}
+<div className="flex justify-center">
 
 <div
-className={`rounded-2xl shadow-xl p-6
+className={`rounded-2xl shadow-xl p-6 w-full max-w-md
 ${
 darkMode
 ? "bg-gray-800"
@@ -2176,7 +2103,7 @@ darkMode
 Completed vs Pending
 </h3>
 
-<div style={{ width: "100%", height: 350 }}>
+<div style={{ width: "100%", height: 300 }}>
 
 <ResponsiveContainer>
 
@@ -2186,7 +2113,7 @@ Completed vs Pending
 data={pieData}
 cx="50%"
 cy="50%"
-outerRadius={120}
+outerRadius={100}
 dataKey="value"
 label
 >
@@ -2212,112 +2139,55 @@ fill={COLORS[index]}
 
 </div>
 
-{/* BAR CHART */}
-
-<div
-className={`rounded-2xl shadow-xl p-6
-${
-darkMode
-? "bg-gray-800"
-: "bg-white"
-}`}
->
-
-<h3 className="text-xl font-bold mb-5 text-center">
-Subject Wise Progress
-</h3>
-
-<div style={{ width: "100%", height: 350 }}>
-
-<ResponsiveContainer>
-
-<BarChart
-data={barData}
->
-
-<CartesianGrid strokeDasharray="3 3"/>
-
-<XAxis dataKey="subject"/>
-
-<YAxis/>
-
-<Tooltip/>
-
-<Legend/>
-
-<Bar
-dataKey="completed"
-fill="#22c55e"
-/>
-
-<Bar
-dataKey="pending"
-fill="#f59e0b"
-/>
-
-</BarChart>
-
-</ResponsiveContainer>
-
 </div>
 
 </div>
 
-</div>
-
-</div>
-
-<div className="max-w-7xl mx-auto mb-14">
+<div className="max-w-4xl mx-auto mb-14">
   <h2 className="text-3xl font-bold text-center mb-8">
-    Study Analytics
+    Subject Progress
   </h2>
-  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-5">
-    {
-      Object.entries(
-        analytics
-      ).map(
-        ([subject, data]) => (
-          <div
-            key={subject}
-    className={`rounded-2xl shadow-lg p-5 text-center
-  ${
-    darkMode
-      ? "bg-gray-800 text-white"
-      : "bg-white text-black"
+  {
+    Object.entries(analytics).filter(([, data]) => data.total > 0).length === 0 ? (
+      <p className={`text-center ${darkMode ? "text-gray-400" : "text-gray-500"}`}>
+        Upload a snap and pick a subject to see your progress here.
+      </p>
+    ) : (
+      <div className="space-y-4">
+        {
+          Object.entries(analytics)
+            .filter(([, data]) => data.total > 0)
+            .map(([subject, data]) => {
+              const percent = Math.round((data.completed / data.total) * 100);
+              return (
+                <div
+                  key={subject}
+                  className={`rounded-xl shadow p-4 ${
+                    darkMode ? "bg-gray-800 text-white" : "bg-white text-black"
+                  }`}
+                >
+                  <div className="flex justify-between mb-2">
+                    <span className="font-bold text-blue-600">{subject}</span>
+                    <span className={darkMode ? "text-gray-300" : "text-gray-600"}>
+                      {data.completed}/{data.total} completed
+                    </span>
+                  </div>
+                  <div className={`w-full h-3 rounded-full ${darkMode ? "bg-gray-700" : "bg-gray-200"}`}>
+                    <div
+                      className="h-3 rounded-full bg-green-500"
+                      style={{ width: `${percent}%` }}
+                    ></div>
+                  </div>
+                </div>
+              );
+            })
+        }
+      </div>
+    )
   }
-`}
-          >
-       <h3 className="text-2xl font-bold text-blue-600 mb-3">
-          {subject}
-          </h3>
-    <p className={`mb-2
-  ${
-    darkMode
-      ? "text-gray-300"
-      : "text-gray-700"
-  }
-`}>
-        Total Topics:
-              {" "}
-        {data.total}
-          </p>
-    <p className={`text-green-600 font-semibold
-  ${
-    darkMode
-      ? "text-green-400"
-      : "text-green-600"
-  }
-`}>
-        Completed:
-  {" "}
-     {data.completed}
-    </p>
-    </div>
-        )
-      )
-    }
-  </div>
 </div>
+
+
 <div
   className={`text-center mb-8 text-lg font-semibold
 
