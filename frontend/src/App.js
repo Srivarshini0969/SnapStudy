@@ -1930,7 +1930,7 @@ Logout
     <img
       src={URL.createObjectURL(image)}
       alt="preview"
-      className="w-full max-h-96 object-contain rounded-xl"
+      className="w-full max-h-150 object-contain rounded-xl"
     />
   )
 }
