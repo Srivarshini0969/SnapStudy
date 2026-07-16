@@ -36,7 +36,7 @@ OCR:
 - Tesseract.js
 
 Deployment:
-- Railway
+- Render
 - Vercel
 
  ## Screenshots
