@@ -661,10 +661,18 @@ rawText
 
 const ocrLines = result.data.lines || [];
 
-const lines = ocrLines
+let lines = ocrLines
   .filter(l => l.confidence >= 40)
   .map(l => l.text.trim().replace(/\s+/g, " "))
   .filter(line => line.length > 2);
+
+if (lines.length === 0) {
+  lines = rawText
+    .split("\n")
+    .map(line => line.trim())
+    .filter(line => line.length > 2)
+    .map(line => line.replace(/\s+/g, " "));
+}
 
   const stopWords = [
 
