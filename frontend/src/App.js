@@ -1927,13 +1927,11 @@ Logout
 
 {
   image && (
-
     <img
       src={URL.createObjectURL(image)}
       alt="preview"
-      className="w-full h-48 object-cover rounded-xl"
+      className="w-full max-h-96 object-contain rounded-xl"
     />
-
   )
 }
 
