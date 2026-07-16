@@ -659,13 +659,12 @@ rawText
 
      if (cleanedText) {
 
-const lines = rawText
-  .split("\n")
-  .map(line => line.trim())
-  .filter(line => line.length > 2)
-  .map(line =>
-    line.replace(/\s+/g, " ")
-  );
+const ocrLines = result.data.lines || [];
+
+const lines = ocrLines
+  .filter(l => l.confidence >= 40)
+  .map(l => l.text.trim().replace(/\s+/g, " "))
+  .filter(line => line.length > 2);
 
   const stopWords = [
 
