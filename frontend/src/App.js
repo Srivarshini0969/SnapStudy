@@ -764,45 +764,42 @@ let topic = "";
    a well-known CS topic.
 ---------------------------------*/
 
-for (const heading of headingKeywords) {
+const candidateLines = lines.filter(line => {
+  const lower = line.toLowerCase();
+  if (line.length < 4 || line.length > 80) return false;
+  if (stopWords.some(word => lower.includes(word))) return false;
+  if (/^[0-9\s]+$/.test(line)) return false;
+  return true;
+});
 
-  if (
-    cleanedText
-      .toLowerCase()
-      .includes(heading.toLowerCase())
-  ) {
+topic =
+  candidateLines.sort((a, b) => {
 
-    topic = heading;
-    break;
+    const getScore = (line) => {
+      let score = 0;
+      const words = line.split(/\s+/);
 
-  }
+      score += 100 - Math.abs(words.length - 3) * 10;
+      score += 100 - Math.abs(line.length - 25);
 
-}
+      if (/^[A-Z]/.test(line)) score += 20;
+      if (line.endsWith(":")) score += 15;
 
-if (!topic) {
+      if (/[.!?]/.test(line)) score -= 40;
+      if (/\bis\b|\bare\b|\bwas\b|\bwere\b/i.test(line)) score -= 40;
+      if (/\b(ex|example|input|output)\b/i.test(line)) score -= 20;
 
-  for (const line of lines) {
-
-    for (const heading of headingKeywords) {
-
-      if (
-        line
-          .toLowerCase()
-          .includes(heading.toLowerCase())
-      ) {
-
-        topic = heading;
-        break;
-
+      // small bonus only — never a requirement
+      if (headingKeywords.some(h => line.toLowerCase().includes(h.toLowerCase()))) {
+        score += 25;
       }
 
-    }
+      return score;
+    };
 
-    if (topic) break;
+    return getScore(b) - getScore(a);
 
-  }
-
-}
+  })[0] || "";
 
 /* ---------- Priority 2 ----------
    If not found, intelligently score
