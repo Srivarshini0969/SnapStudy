@@ -563,426 +563,259 @@ const logout = () => {
 };
 
 /* ===================================
-   OCR TEXT EXTRACTION
-=================================== */
+     OCR TEXT EXTRACTION
+  =================================== */
 
-const subjectKeywords = {
+  const subjectKeywords = {
+    DSA: [
+      "ARRAY", "STRING", "RECURSION", "LINKED", "STACK", "QUEUE",
+      "TREE", "GRAPH", "AVL", "BST", "SORTING", "SEARCH", "HEAP", "HASH",
+      "KRUSKAL", "PRIM", "DIJKSTRA", "FLOYD", "WARSHALL", "GREEDY",
+      "DYNAMIC PROGRAMMING", "BACKTRACKING", "TRIE", "SEGMENT TREE",
+      "BINARY TREE", "BINARY SEARCH TREE", "MST", "MINIMUM SPANNING TREE"
+    ],
+    Java: ["JAVA", "JVM", "JDK", "OOPS"],
+    Python: ["PYTHON"],
+    JavaScript: ["JAVASCRIPT", "ES6", "PROMISE", "ASYNC"],
+    ReactJS: ["REACT", "JSX", "HOOK", "COMPONENT"],
+    NodeJS: ["NODE", "EXPRESS", "NPM"],
+    DBMS: ["DBMS", "SQL", "NORMALIZATION", "DATABASE"],
+    "OPERATING SYSTEMS": [
+      "OPERATING SYSTEM", "DEADLOCK", "CPU SCHEDULING",
+      "PROCESS SCHEDULING", "PAGE REPLACEMENT", "SEMAPHORE",
+      "MUTEX", "CRITICAL SECTION", "THRASHING", "VIRTUAL MEMORY"
+    ],
+    "COMPUTER NETWORKS": ["TCP", "UDP", "OSI", "HTTP", "NETWORK"],
+    "COMPILER DESIGN": [
+      "COMPILER", "LEXICAL", "PARSER", "PARSING", "SYNTAX",
+      "BOTTOM UP", "TOP DOWN", "SHIFT REDUCE", "GRAMMAR"
+    ],
+    "FRONTEND DEVELOPMENT": ["HTML", "CSS", "BOOTSTRAP"],
+    "BACKEND DEVELOPMENT": ["API", "REST", "MONGODB", "BACKEND"],
+    "AI/ML": ["MACHINE LEARNING", "NEURAL", "REGRESSION"]
+  };
 
-  DSA: [
-    "ARRAY", "STRING", "RECURSION", "LINKED", "STACK", "QUEUE",
-    "TREE", "GRAPH", "AVL", "BST", "SORTING", "SEARCH", "HEAP", "HASH",
-    "KRUSKAL", "PRIM", "DIJKSTRA", "FLOYD", "WARSHALL", "GREEDY",
-    "DYNAMIC PROGRAMMING", "BACKTRACKING", "TRIE", "SEGMENT TREE",
-    "BINARY TREE", "BINARY SEARCH TREE", "MST", "MINIMUM SPANNING TREE"
-  ],
+  const detectSubject = (text) => {
+    const upper = text.toUpperCase();
+    let bestSubject = "";
+    let maxScore = 0;
 
-  Java: ["JAVA", "JVM", "JDK", "OOPS"],
-  Python: ["PYTHON"],
-  JavaScript: ["JAVASCRIPT", "ES6", "PROMISE", "ASYNC"],
-  ReactJS: ["REACT", "JSX", "HOOK", "COMPONENT"],
-  NodeJS: ["NODE", "EXPRESS", "NPM"],
-  DBMS: ["DBMS", "SQL", "NORMALIZATION", "DATABASE"],
+    for (const subject in subjectKeywords) {
+      let score = 0;
+      subjectKeywords[subject].forEach((keyword) => {
+        if (upper.includes(keyword)) score++;
+      });
 
-  "OPERATING SYSTEMS": [
-    "OPERATING SYSTEM", "DEADLOCK", "CPU SCHEDULING",
-    "PROCESS SCHEDULING", "PAGE REPLACEMENT", "SEMAPHORE",
-    "MUTEX", "CRITICAL SECTION", "THRASHING", "VIRTUAL MEMORY"
-  ],
-
-  "COMPUTER NETWORKS": ["TCP", "UDP", "OSI", "HTTP", "NETWORK"],
-
-  "COMPILER DESIGN": [
-    "COMPILER", "LEXICAL", "PARSER", "PARSING", "SYNTAX",
-    "BOTTOM UP", "TOP DOWN", "SHIFT REDUCE", "GRAMMAR"
-  ],
-
-  "FRONTEND DEVELOPMENT": ["HTML", "CSS", "BOOTSTRAP"],
-  "BACKEND DEVELOPMENT": ["API", "REST", "MONGODB", "BACKEND"],
-  "AI/ML": ["MACHINE LEARNING", "NEURAL", "REGRESSION"]
-
-};
-
-const detectSubject = (text) => {
-
-  const upper = text.toUpperCase();
-  let bestSubject = "";
-  let maxScore = 0;
-
-  for (const subject in subjectKeywords) {
-
-    let score = 0;
-
-    subjectKeywords[subject].forEach((keyword) => {
-      if (upper.includes(keyword)) score++;
-    });
-
-    if (score > maxScore) {
-      maxScore = score;
-      bestSubject = subject;
+      if (score > maxScore) {
+        maxScore = score;
+        bestSubject = subject;
+      }
     }
+    return bestSubject;
+  };
 
-  }
-
-  return bestSubject;
-
-};
-
-
-
-const extractTextFromImage =
-  async (file) => {
-
+  const extractTextFromImage = async (file) => {
     try {
-
       const loading = toast.loading("Detecting topic...");
 
-const result = await Tesseract.recognize(
-  file,
-  "eng",
-  {
-    logger: m => console.log(m)
-  }
-);
+      const result = await Tesseract.recognize(file, "eng", {
+        logger: (m) => console.log(m),
+      });
       toast.dismiss(loading);
 
-      const rawText =
-        result.data.text;
-        console.log("OCR Text");
-        console.log(rawText);
+      const rawText = result.data.text;
+      console.log("OCR Text:\n", rawText);
 
-        const cleanedText =
-rawText
-.replace(/[|]/g, "I")
-.replace(/[^a-zA-Z0-9\s-]/g, " ")
-.replace(/\s+/g, " ")
-.trim();
+      const cleanedText = rawText
+        .replace(/[|]/g, "I")
+        .replace(/[^a-zA-Z0-9\s-]/g, " ")
+        .replace(/\s+/g, " ")
+        .trim();
 
-     if (cleanedText) {
+      if (cleanedText) {
+        const ocrLines = result.data.lines || [];
 
-const ocrLines = result.data.lines || [];
+        // Extract lines with decent confidence
+        let lines = ocrLines
+          .filter((l) => l.confidence >= 40)
+          .map((l) => l.text.trim().replace(/\s+/g, " "))
+          .filter((line) => line.length > 2);
 
-let lines = ocrLines
-  .filter(l => l.confidence >= 40)
-  .map(l => l.text.trim().replace(/\s+/g, " "))
-  .filter(line => line.length > 2);
+        // Fallback if line data is missing
+        if (lines.length === 0) {
+          lines = rawText
+            .split("\n")
+            .map((line) => line.trim())
+            .filter((line) => line.length > 2)
+            .map((line) => line.replace(/\s+/g, " "));
+        }
 
-if (lines.length === 0) {
-  lines = rawText
-    .split("\n")
-    .map(line => line.trim())
-    .filter(line => line.length > 2)
-    .map(line => line.replace(/\s+/g, " "));
-}
+        const stopWords = [
+          "department", "university", "college", "faculty", "semester",
+          "academic", "year", "session", "lecture", "page", "slide",
+          "copyright", "http", "https", "www", "chapter", "topic",
+          "today", "class", "notes", "professor", "assistant", "course",
+          "unit", "week", "application", "applications"
+        ];
 
-  const stopWords = [
+        const headingKeywords = [
+          "Binary Tree", "Binary Tree Array", "Bottom up Parsing",
+          "Top down Parsing", "AVL Tree", "BST", "Heap", "Graph",
+          "DFS", "BFS", "Recursion", "Dynamic Programming",
+          "Compiler Design", "Lexical Analysis", "Syntax Analysis",
+          "Parsing", "Deadlock", "Process Scheduling", "Normalization",
+          "ER Diagram", "SQL", "TCP", "UDP", "OSI Model", "React Hooks",
+          "Promises", "Express JS", "Implementation", "Algorithm",
+          "Data Structure", "Binary Search", "Merge Sort", "Quick Sort",
+          "Insertion Sort", "Selection Sort", "Bubble Sort", "Linked List",
+          "Stack", "Queue", "Hash Table", "Greedy", "Backtracking",
+          "Finite Automata", "Shift Reduce Parsing", "Operator Precedence",
+          "LL Parser", "LR Parser", "MongoDB", "Kruskal", "Prim", "Dijkstra"
+        ];
 
-"department",
-"university",
-"college",
-"faculty",
-"semester",
-"academic",
-"year",
-"session",
-"lecture",
-"page",
-"slide",
-"copyright",
-"http",
-"https",
-"www",
-"chapter",
-"topic",
-"today",
-"class",
-"notes",
-"professor",
-"assistant",
-"course",
-"unit",
-"week"
+        // 1. Filter out obvious junk lines
+        const candidateLines = lines.filter((line) => {
+          const lower = line.toLowerCase();
+          if (line.length < 4 || line.length > 80) return false;
+          if (stopWords.some((word) => lower.includes(word))) return false;
+          if (/^[0-9\s]+$/.test(line)) return false;
+          return true;
+        });
 
-];
+        // 2. Score the candidates based on Heuristics AND Position
+        let topic = candidateLines.sort((a, b) => {
+          const idxA = lines.indexOf(a);
+          const idxB = lines.indexOf(b);
 
-const headingKeywords = [
+          const getScore = (line, idx) => {
+            let score = 0;
+            const words = line.split(/\s+/);
 
-  "Binary Tree",
-  "Binary Tree Array",
-  "Bottom up Parsing",
-  "Top down Parsing",
-  "AVL Tree",
-  "BST",
-  "Heap",
-  "Graph",
-  "DFS",
-  "BFS",
-  "Recursion",
-  "Dynamic Programming",
-  "Compiler Design",
-  "Lexical Analysis",
-  "Syntax Analysis",
-  "Parsing",
-  "Deadlock",
-  "Process Scheduling",
-  "Normalization",
-  "ER Diagram",
-  "SQL",
-  "TCP",
-  "UDP",
-  "OSI Model",
-  "React Hooks",
-  "Promises",
-  "Express JS",
-  "Implementation",
-"Algorithm",
-"Data Structure",
-"Binary Search",
-"Merge Sort",
-"Quick Sort",
-"Insertion Sort",
-"Selection Sort",
-"Bubble Sort",
-"Linked List",
-"Stack",
-"Queue",
-"Hash Table",
-"Greedy",
-"Backtracking",
-"Finite Automata",
-"Shift Reduce Parsing",
-"Operator Precedence",
-"LL Parser",
-"LR Parser",
-  "MongoDB"
+            // Standard length heuristics
+            score += 100 - Math.abs(words.length - 3) * 10;
+            score += 100 - Math.abs(line.length - 25);
 
-];
+            // Formatting & grammar heuristics
+            if (/^[A-Z]/.test(line)) score += 20;
+            if (/[.!?]/.test(line)) score -= 40;
+            if (/\bis\b|\bare\b|\bwas\b|\bwere\b/i.test(line)) score -= 40;
+            if (/\b(ex|example|input|output)\b/i.test(line)) score -= 20;
 
-let topic = "";
+            // 🚀 POSITIONAL BONUS
+            if (idx === 0) score += 120;
+            else if (idx === 1) score += 100;
+            else if (idx === 2) score += 80;
+            else if (idx <= 5) score += 40;
+            
+            // Penalize random body text
+            if (idx > 5) score -= 60;
 
-/* ---------- Priority 1 ----------
-   Check whether OCR already contains
-   a well-known CS topic.
----------------------------------*/
+            // Keyword Match Bonus
+            if (headingKeywords.some((h) => line.toLowerCase().includes(h.toLowerCase()))) {
+              score += 40;
+            }
 
-const candidateLines = lines.filter(line => {
-  const lower = line.toLowerCase();
-  if (line.length < 4 || line.length > 80) return false;
-  if (stopWords.some(word => lower.includes(word))) return false;
-  if (/^[0-9\s]+$/.test(line)) return false;
-  return true;
-});
+            return score;
+          };
 
-topic =
-  candidateLines.sort((a, b) => {
+          return getScore(b, idxB) - getScore(a, idxA);
+        })[0] || "";
 
-    const getScore = (line) => {
-      let score = 0;
-      const words = line.split(/\s+/);
+        let finalTopic = topic;
 
-      score += 100 - Math.abs(words.length - 3) * 10;
-      score += 100 - Math.abs(line.length - 25);
-
-      if (/^[A-Z]/.test(line)) score += 20;
-      if (line.endsWith(":")) score += 15;
-
-      if (/[.!?]/.test(line)) score -= 40;
-      if (/\bis\b|\bare\b|\bwas\b|\bwere\b/i.test(line)) score -= 40;
-      if (/\b(ex|example|input|output)\b/i.test(line)) score -= 20;
-
-      // small bonus only — never a requirement
-      if (headingKeywords.some(h => line.toLowerCase().includes(h.toLowerCase()))) {
-        score += 25;
-      }
-
-      return score;
-    };
-
-    return getScore(b) - getScore(a);
-
-  })[0] || "";
-
-/* ---------- Priority 2 ----------
-   If not found, intelligently score
-   every OCR line.
----------------------------------*/
-
-if (!topic) {
-
-  const candidateLines = lines.filter(line => {
-
-    const lower = line.toLowerCase();
-
-    if (line.length < 4) return false;
-
-    if (line.length > 80) return false;
-
-    if (
-      stopWords.some(word =>
-        lower.includes(word)
-      )
-    )
-      return false;
-
-    if (/^[0-9\s]+$/.test(line))
-      return false;
-
-    return true;
-
-  });
-
-  topic =
-  candidateLines.sort((a, b) => {
-
-    const getScore = (line) => {
-
-      let score = 0;
-      const words = line.split(/\s+/);
-
-      score += 100 - Math.abs(words.length - 3) * 10;
-      score += 100 - Math.abs(line.length - 25);
-
-      if (/^[A-Z]/.test(line)) score += 20;
-      if (line.endsWith(":")) score += 15;
-
-      if (/[.!?]/.test(line)) score -= 40;
-      if (/\bis\b|\bare\b|\bwas\b|\bwere\b/i.test(line)) score -= 40;
-      if (/\b(ex|example|input|output)\b/i.test(line)) score -= 20;
-
-      return score;
-
-    };
-
-    return getScore(b) - getScore(a);
-
-  })[0] || "";
-
-}
-let finalTopic = topic;
-
-finalTopic = finalTopic.replace(/Algor\b/i, "Algorithm");
-finalTopic = finalTopic.replace(/Algorithim/i, "Algorithm");
-finalTopic = finalTopic.replace(/Algoritnm/i, "Algorithm");
-finalTopic = finalTopic.replace(/Krugkal/i, "Kruskal");
-finalTopic = finalTopic.replace(/Krugkald/i, "Kruskal");
-finalTopic = finalTopic.replace(/Kruskal s/i, "Kruskal's");
-
-const invalidTopic =
-
-  !topic ||
-
-  topic.length < 4 ||
-
-  /^[0-9]+$/.test(topic) ||
-
-  /^[^A-Za-z]+$/.test(topic);
-
-
-if (invalidTopic) {
-
-toast.error(
-  "Lecture title couldn't be detected. Please upload a clear image of the topic."
-);  
-
-  setTitle("");
-
-  return;
-}
-  const detectedSubject =
-    detectSubject(cleanedText);
-
- setTitle(finalTopic);
-
-  if (detectedSubject) {
-    setCategory(detectedSubject);
-
-    toast.success(
-      `Subject Detected: ${detectedSubject}`
-    );
-  }
-
-  toast.success(
-    `Detected Topic: ${finalTopic}`
-  );
-
-  if (topic && topic.length > 3) {
-    await fetchYoutubeVideo(
-      finalTopic,detectedSubject);
-  }
-
-}
+        // Clean up common OCR typos
+        finalTopic = finalTopic.replace(/Algor\b/i, "Algorithm");
+        finalTopic = finalTopic.replace(/Algorithim/i, "Algorithm");
+        finalTopic = finalTopic.replace(/Algoritnm/i, "Algorithm");
+        finalTopic = finalTopic.replace(/Krugkal/i, "Kruskal");
+        finalTopic = finalTopic.replace(/Krugkald/i, "Kruskal");
+        finalTopic = finalTopic.replace(/Kruskal s/i, "Kruskal's");
         
+        // Safety net for Kruskal's exact merge error
+        if (finalTopic.toLowerCase().includes("kruskal's algorithm")) {
+           finalTopic = "Kruskal's Algorithm";
+        }
+
+        const invalidTopic =
+          !topic ||
+          topic.length < 4 ||
+          /^[0-9]+$/.test(topic) ||
+          /^[^A-Za-z]+$/.test(topic);
+
+        if (invalidTopic) {
+          toast.error(
+            "Lecture title couldn't be detected. Please upload a clear image of the topic."
+          );
+          setTitle("");
+          return;
+        }
+
+        const detectedSubject = detectSubject(cleanedText);
+
+        setTitle(finalTopic);
+
+        if (detectedSubject) {
+          setCategory(detectedSubject);
+          toast.success(`Subject Detected: ${detectedSubject}`);
+        }
+
+        toast.success(`Detected Topic: ${finalTopic}`);
+
+        if (topic && topic.length > 3) {
+          await fetchYoutubeVideo(finalTopic, detectedSubject);
+        }
       }
-
-    catch (error) {
-
+    } catch (error) {
       toast.dismiss();
-
       console.log(error);
-
-      toast.error(
-        "OCR failed"
-      );
+      toast.error("OCR failed");
     }
   };
 
-const fetchYoutubeVideo = async (topic, subject = "") => {
+  const fetchYoutubeVideo = async (topic, subject = "") => {
+    const loading = toast.loading("Searching YouTube lecture...");
 
-  const loading = toast.loading("Searching YouTube lecture...");
+    try {
+      const searchQuery = `${topic} ${subject}`.trim() + " full lecture";
 
-  try {
-const searchQuery =
-  `${topic} ${subject}`.trim() + " full lecture";
+      const result = await SearchYoutube.GetListByKeyword(
+        searchQuery,
+        false,
+        1
+      );
+      
+      console.log("Search Query:", searchQuery);
+      console.log("YouTube Result:", result);
 
-const result =
-  await SearchYoutube.GetListByKeyword(
-    searchQuery,
-    false,
-    1
-  );
-    
-    console.log("Search Query:",searchQuery);
-    console.log("YouTube Result:", result);
-    console.log("Items:", result?.items);
-    console.log("First Video:", result?.items?.[0]);
+      toast.dismiss(loading);
 
-    toast.dismiss(loading);
+      const firstVideo = result?.items?.[0];
 
-    const firstVideo = result?.items?.[0];
+      if (!firstVideo) {
+        toast.error("No lecture found.");
+        return;
+      }
 
-    if (!firstVideo) {
+      const videoId =
+        firstVideo.id?.videoId ||
+        firstVideo.videoId ||
+        firstVideo.id;
+        
+      if (!videoId) {
+        toast.error("Invalid YouTube result.");
+        return;
+      }
+      
+      const videoLink = `https://www.youtube.com/watch?v=${videoId}`;
+      setVideoUrl(videoLink);
 
-      toast.error("No lecture found.");
-
-      return;
+    } catch (error) {
+      toast.dismiss(loading);
+      console.error("YouTube Error:", error);
+      toast.error("Lecture couldn't be searched correctly.");
     }
-
-    const videoId =
-  firstVideo.id?.videoId ||
-  firstVideo.videoId ||
-  firstVideo.id;
-   if (!videoId) {
-  toast.error("Invalid YouTube result.");
-  return;
-}
-    const videoLink =
-      `https://www.youtube.com/watch?v=${videoId}`;
-
-    setVideoUrl(videoLink);
-
-  } catch (error) {
-
-    toast.dismiss(loading);
-
-    console.error("YouTube Error:", error);
-
-    toast.error(
-  "Lecture title couldn't be detected. Please upload a clear image of the topic."
-);
-
-  }
-
-};
-
+  };
+  
 /* ===================================
    UPLOAD SNAP
 =================================== */
