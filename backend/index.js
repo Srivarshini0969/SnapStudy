@@ -834,29 +834,21 @@ app.get( "/api/snaps",
           lastViewed: -1
         });
 
-      const updatedSnaps =
-        snaps.map((snap) => {
+   const updatedSnaps = snaps.map((snap) => {
+  let thumbnail = null;
 
-          return {
-             
-            ...snap._doc,
+  if (snap.videoUrl) {
+    const videoId = snap.videoUrl.match(/(?:youtu\.be\/|youtube\.com.*v=|youtube\.com.*\/embed\/)([^?&"'>]+)/);
+    thumbnail = videoId ? `https://img.youtube.com/vi/${videoId[1]}/hqdefault.jpg` : null;
+  }
 
-            watchLink:
-              generateWatchLink(
-                snap.videoUrl,
-                snap.timestamp
-              ),
-
-            searchLink:
-              `https://www.youtube.com/results?search_query=${
-                encodeURIComponent(
-                  `${snap.title} ${snap.channelName || ""}`
-                )
-              }`
-
-          };
-
-        });
+  return {
+    ...snap._doc,
+    watchLink: generateWatchLink(snap.videoUrl, snap.timestamp),
+    searchLink: `https://www.youtube.com/results?search_query=${encodeURIComponent(`${snap.title} ${snap.channelName || ""}`)}`,
+    thumbnail: thumbnail
+  };
+});
 
       res.json(updatedSnaps);
 
@@ -888,38 +880,35 @@ app.post("/api/snaps",
 
     try {
 
-      console.log(req.body);
+            console.log(req.body);
 
-      const {
-        title,
-        videoUrl,
-        timestamp,
-        note,
-        category,
-        channelName
+      const { 
+        title, 
+        videoUrl, 
+        timestamp, 
+        note, 
+        category, 
+        channelName 
       } = req.body;
 
-      if (!title) {
-  return res.status(400).json({
-    message: "Title required"
-  });
-}
+      // Better validation
+      if (!title?.trim()) {
+        return res.status(400).json({ 
+          message: "Title is required" 
+        });
+      }
 
-if (
-  !req.file &&
-  !videoUrl &&
-  !note &&
-  !channelName
-) {
+      if (
+        !req.file &&
+        !videoUrl &&
+        !note &&
+        !channelName
+      ) {
+        return res.status(400).json({
+          message: "Add at least a YouTube link, notes, channel name, or screenshot"
+        });
+      }
 
-  return res.status(400).json({
-
-    message:
-      "Add YouTube link, channel name, notes, or screenshot"
-
-  });
-
-}
       const newSnap =
         new Snap({
           userId: req.user.id,

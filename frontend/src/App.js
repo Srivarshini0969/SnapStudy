@@ -17,7 +17,7 @@ import { GoogleLogin } from "@react-oauth/google";
 import toast, { Toaster } from "react-hot-toast";
 import Tesseract from "tesseract.js";
 import SearchYoutube from "youtube-search-api";
-
+import subjectKeywords from "./utils/subjectKeywords";
 function App() {
 
   /* ===================================
@@ -36,6 +36,9 @@ const [forgotSecretName,
     const [image, setImage] = useState(null);
 
   const [note, setNote] = useState("");
+
+  const [isOcrLoading, setIsOcrLoading] = useState(false);
+const [isYoutubeLoading, setIsYoutubeLoading] = useState(false);
 
   const [category, setCategory] = useState("");
 
@@ -222,14 +225,33 @@ useEffect(() => {
    STUDY TIMER
 =================================== */
 
+// Improved Study Timer
 useEffect(() => {
   if (!user) return;
 
-  const timer = setInterval(() => {
-    setStudyTime((prev) => prev + 1);
-  }, 1000);
+  let interval;
 
-  return () => clearInterval(timer);
+  const startTimer = () => {
+    interval = setInterval(() => {
+      setStudyTime((prev) => prev + 1);
+    }, 1000);
+  };
+
+  const handleVisibilityChange = () => {
+    if (document.visibilityState === "visible") {
+      startTimer();
+    } else {
+      clearInterval(interval);
+    }
+  };
+
+  document.addEventListener("visibilitychange", handleVisibilityChange);
+  startTimer(); // Start immediately
+
+  return () => {
+    clearInterval(interval);
+    document.removeEventListener("visibilitychange", handleVisibilityChange);
+  };
 }, [user]);
 
 useEffect(() => {
@@ -565,212 +587,186 @@ const logout = () => {
 /* ===================================
      OCR TEXT EXTRACTION
   =================================== */
+const detectSubject = (text) => {
+  const upper = text.toUpperCase();
+  let bestSubject = "";
+  let maxScore = 0;
 
-  const subjectKeywords = {
-    DSA: [
-      "ARRAY", "STRING", "RECURSION", "LINKED", "STACK", "QUEUE",
-      "TREE", "GRAPH", "AVL", "BST", "SORTING", "SEARCH", "HEAP", "HASH",
-      "KRUSKAL", "PRIM", "DIJKSTRA", "FLOYD", "WARSHALL", "GREEDY",
-      "DYNAMIC PROGRAMMING", "BACKTRACKING", "TRIE", "SEGMENT TREE",
-      "BINARY TREE", "BINARY SEARCH TREE", "MST", "MINIMUM SPANNING TREE"
-    ],
-    Java: ["JAVA", "JVM", "JDK", "OOPS"],
-    Python: ["PYTHON"],
-    JavaScript: ["JAVASCRIPT", "ES6", "PROMISE", "ASYNC"],
-    ReactJS: ["REACT", "JSX", "HOOK", "COMPONENT"],
-    NodeJS: ["NODE", "EXPRESS", "NPM"],
-    DBMS: ["DBMS", "SQL", "NORMALIZATION", "DATABASE"],
-    "OPERATING SYSTEMS": [
-      "OPERATING SYSTEM", "DEADLOCK", "CPU SCHEDULING",
-      "PROCESS SCHEDULING", "PAGE REPLACEMENT", "SEMAPHORE",
-      "MUTEX", "CRITICAL SECTION", "THRASHING", "VIRTUAL MEMORY"
-    ],
-    "COMPUTER NETWORKS": ["TCP", "UDP", "OSI", "HTTP", "NETWORK"],
-    "COMPILER DESIGN": [
-      "COMPILER", "LEXICAL", "PARSER", "PARSING", "SYNTAX",
-      "BOTTOM UP", "TOP DOWN", "SHIFT REDUCE", "GRAMMAR"
-    ],
-    "FRONTEND DEVELOPMENT": ["HTML", "CSS", "BOOTSTRAP"],
-    "BACKEND DEVELOPMENT": ["API", "REST", "MONGODB", "BACKEND"],
-    "AI/ML": ["MACHINE LEARNING", "NEURAL", "REGRESSION"]
-  };
+  for (const subject in subjectKeywords) {
+    let score = 0;
+    subjectKeywords[subject].forEach((keyword) => {
+      if (upper.includes(keyword)) score++;
+    });
 
-  const detectSubject = (text) => {
-    const upper = text.toUpperCase();
-    let bestSubject = "";
-    let maxScore = 0;
-
-    for (const subject in subjectKeywords) {
-      let score = 0;
-      subjectKeywords[subject].forEach((keyword) => {
-        if (upper.includes(keyword)) score++;
-      });
-
-      if (score > maxScore) {
-        maxScore = score;
-        bestSubject = subject;
-      }
+    if (score > maxScore) {
+      maxScore = score;
+      bestSubject = subject;
     }
-    return bestSubject;
-  };
+  }
+  return bestSubject;
+};
 
   const extractTextFromImage = async (file) => {
-    try {
-      const loading = toast.loading("Detecting topic...");
+  setIsOcrLoading(true);   // ← Added for loading state
 
-      const result = await Tesseract.recognize(file, "eng", {
-        logger: (m) => console.log(m),
-      });
-      toast.dismiss(loading);
+  try {
+    const loading = toast.loading("Detecting topic...");
 
-      const rawText = result.data.text;
-      console.log("OCR Text:\n", rawText);
+    const result = await Tesseract.recognize(file, "eng", {
+      logger: (m) => console.log(m),
+    });
 
-      const cleanedText = rawText
-        .replace(/[|]/g, "I")
-        .replace(/[^a-zA-Z0-9\s-]/g, " ")
-        .replace(/\s+/g, " ")
-        .trim();
+    toast.dismiss(loading);
 
-      if (cleanedText) {
-        const ocrLines = result.data.lines || [];
+    const rawText = result.data.text;
+    console.log("OCR Text:\n", rawText);
 
-        // Extract lines with decent confidence
-        let lines = ocrLines
-          .filter((l) => l.confidence >= 40)
-          .map((l) => l.text.trim().replace(/\s+/g, " "))
-          .filter((line) => line.length > 2);
+    const cleanedText = rawText
+      .replace(/[|]/g, "I")
+      .replace(/[^a-zA-Z0-9\s-]/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
 
-        // Fallback if line data is missing
-        if (lines.length === 0) {
-          lines = rawText
-            .split("\n")
-            .map((line) => line.trim())
-            .filter((line) => line.length > 2)
-            .map((line) => line.replace(/\s+/g, " "));
-        }
+    if (cleanedText) {
+      const ocrLines = result.data.lines || [];
 
-        const stopWords = [
-          "department", "university", "college", "faculty", "semester",
-          "academic", "year", "session", "lecture", "page", "slide",
-          "copyright", "http", "https", "www", "chapter", "topic",
-          "today", "class", "notes", "professor", "assistant", "course",
-          "unit", "week", "application", "applications"
-        ];
+      // Extract lines with decent confidence
+      let lines = ocrLines
+        .filter((l) => l.confidence >= 40)
+        .map((l) => l.text.trim().replace(/\s+/g, " "))
+        .filter((line) => line.length > 2);
 
-        const headingKeywords = [
-          "Binary Tree", "Binary Tree Array", "Bottom up Parsing",
-          "Top down Parsing", "AVL Tree", "BST", "Heap", "Graph",
-          "DFS", "BFS", "Recursion", "Dynamic Programming",
-          "Compiler Design", "Lexical Analysis", "Syntax Analysis",
-          "Parsing", "Deadlock", "Process Scheduling", "Normalization",
-          "ER Diagram", "SQL", "TCP", "UDP", "OSI Model", "React Hooks",
-          "Promises", "Express JS", "Implementation", "Algorithm",
-          "Data Structure", "Binary Search", "Merge Sort", "Quick Sort",
-          "Insertion Sort", "Selection Sort", "Bubble Sort", "Linked List",
-          "Stack", "Queue", "Hash Table", "Greedy", "Backtracking",
-          "Finite Automata", "Shift Reduce Parsing", "Operator Precedence",
-          "LL Parser", "LR Parser", "MongoDB", "Kruskal", "Prim", "Dijkstra"
-        ];
-
-        // 1. Filter out obvious junk lines
-        const candidateLines = lines.filter((line) => {
-          const lower = line.toLowerCase();
-          if (line.length < 4 || line.length > 80) return false;
-          if (stopWords.some((word) => lower.includes(word))) return false;
-          if (/^[0-9\s]+$/.test(line)) return false;
-          return true;
-        });
-
-        // 2. Score the candidates based on Heuristics AND Position
-        let topic = candidateLines.sort((a, b) => {
-          const idxA = lines.indexOf(a);
-          const idxB = lines.indexOf(b);
-
-          const getScore = (line, idx) => {
-            let score = 0;
-            const words = line.split(/\s+/);
-
-            // Standard length heuristics
-            score += 100 - Math.abs(words.length - 3) * 10;
-            score += 100 - Math.abs(line.length - 25);
-
-            // Formatting & grammar heuristics
-            if (/^[A-Z]/.test(line)) score += 20;
-            if (/[.!?]/.test(line)) score -= 40;
-            if (/\bis\b|\bare\b|\bwas\b|\bwere\b/i.test(line)) score -= 40;
-            if (/\b(ex|example|input|output)\b/i.test(line)) score -= 20;
-
-            // 🚀 POSITIONAL BONUS
-            if (idx === 0) score += 120;
-            else if (idx === 1) score += 100;
-            else if (idx === 2) score += 80;
-            else if (idx <= 5) score += 40;
-            
-            // Penalize random body text
-            if (idx > 5) score -= 60;
-
-            // Keyword Match Bonus
-            if (headingKeywords.some((h) => line.toLowerCase().includes(h.toLowerCase()))) {
-              score += 40;
-            }
-
-            return score;
-          };
-
-          return getScore(b, idxB) - getScore(a, idxA);
-        })[0] || "";
-
-        let finalTopic = topic;
-
-        // Clean up common OCR typos
-        finalTopic = finalTopic.replace(/Algor\b/i, "Algorithm");
-        finalTopic = finalTopic.replace(/Algorithim/i, "Algorithm");
-        finalTopic = finalTopic.replace(/Algoritnm/i, "Algorithm");
-        finalTopic = finalTopic.replace(/Krugkal/i, "Kruskal");
-        finalTopic = finalTopic.replace(/Krugkald/i, "Kruskal");
-        finalTopic = finalTopic.replace(/Kruskal s/i, "Kruskal's");
-        
-        // Safety net for Kruskal's exact merge error
-        if (finalTopic.toLowerCase().includes("kruskal's algorithm")) {
-           finalTopic = "Kruskal's Algorithm";
-        }
-
-        const invalidTopic =
-          !topic ||
-          topic.length < 4 ||
-          /^[0-9]+$/.test(topic) ||
-          /^[^A-Za-z]+$/.test(topic);
-
-        if (invalidTopic) {
-          toast.error(
-            "Lecture title couldn't be detected. Please upload a clear image of the topic."
-          );
-          setTitle("");
-          return;
-        }
-
-        const detectedSubject = detectSubject(cleanedText);
-
-        setTitle(finalTopic);
-
-        if (detectedSubject) {
-          setCategory(detectedSubject);
-          toast.success(`Subject Detected: ${detectedSubject}`);
-        }
-
-        toast.success(`Detected Topic: ${finalTopic}`);
-
-        if (topic && topic.length > 3) {
-          await fetchYoutubeVideo(finalTopic, detectedSubject);
-        }
+      // Fallback if line data is missing
+      if (lines.length === 0) {
+        lines = rawText
+          .split("\n")
+          .map((line) => line.trim())
+          .filter((line) => line.length > 2)
+          .map((line) => line.replace(/\s+/g, " "));
       }
-    } catch (error) {
-      toast.dismiss();
-      console.log(error);
-      toast.error("OCR failed");
+
+      const stopWords = [
+        "department", "university", "college", "faculty", "semester",
+        "academic", "year", "session", "lecture", "page", "slide",
+        "copyright", "http", "https", "www", "chapter", "topic",
+        "today", "class", "notes", "professor", "assistant", "course",
+        "unit", "week", "application", "applications"
+      ];
+
+      const headingKeywords = [
+        "Binary Tree", "Binary Tree Array", "Bottom up Parsing",
+        "Top down Parsing", "AVL Tree", "BST", "Heap", "Graph",
+        "DFS", "BFS", "Recursion", "Dynamic Programming",
+        "Compiler Design", "Lexical Analysis", "Syntax Analysis",
+        "Parsing", "Deadlock", "Process Scheduling", "Normalization",
+        "ER Diagram", "SQL", "TCP", "UDP", "OSI Model", "React Hooks",
+        "Promises", "Express JS", "Implementation", "Algorithm",
+        "Data Structure", "Binary Search", "Merge Sort", "Quick Sort",
+        "Insertion Sort", "Selection Sort", "Bubble Sort", "Linked List",
+        "Stack", "Queue", "Hash Table", "Greedy", "Backtracking",
+        "Finite Automata", "Shift Reduce Parsing", "Operator Precedence",
+        "LL Parser", "LR Parser", "MongoDB", "Kruskal", "Prim", "Dijkstra"
+      ];
+
+      // 1. Filter out obvious junk lines
+      const candidateLines = lines.filter((line) => {
+        const lower = line.toLowerCase();
+        if (line.length < 4 || line.length > 80) return false;
+        if (stopWords.some((word) => lower.includes(word))) return false;
+        if (/^[0-9\s]+$/.test(line)) return false;
+        return true;
+      });
+
+      // 2. Score the candidates based on Heuristics AND Position
+      let topic = candidateLines.sort((a, b) => {
+        const idxA = lines.indexOf(a);
+        const idxB = lines.indexOf(b);
+
+        const getScore = (line, idx) => {
+          let score = 0;
+          const words = line.split(/\s+/);
+
+          // Standard length heuristics
+          score += 100 - Math.abs(words.length - 3) * 10;
+          score += 100 - Math.abs(line.length - 25);
+
+          // Formatting & grammar heuristics
+          if (/^[A-Z]/.test(line)) score += 20;
+          if (/[.!?]/.test(line)) score -= 40;
+          if (/\bis\b|\bare\b|\bwas\b|\bwere\b/i.test(line)) score -= 40;
+          if (/\b(ex|example|input|output)\b/i.test(line)) score -= 20;
+
+          // POSITIONAL BONUS
+          if (idx === 0) score += 120;
+          else if (idx === 1) score += 100;
+          else if (idx === 2) score += 80;
+          else if (idx <= 5) score += 40;
+          
+          // Penalize random body text
+          if (idx > 5) score -= 60;
+
+          // Keyword Match Bonus
+          if (headingKeywords.some((h) => line.toLowerCase().includes(h.toLowerCase()))) {
+            score += 40;
+          }
+
+          return score;
+        };
+
+        return getScore(b, idxB) - getScore(a, idxA);
+      })[0] || "";
+
+      let finalTopic = topic;
+
+      // Clean up common OCR typos
+      finalTopic = finalTopic.replace(/Algor\b/i, "Algorithm");
+      finalTopic = finalTopic.replace(/Algorithim/i, "Algorithm");
+      finalTopic = finalTopic.replace(/Algoritnm/i, "Algorithm");
+      finalTopic = finalTopic.replace(/Krugkal/i, "Kruskal");
+      finalTopic = finalTopic.replace(/Krugkald/i, "Kruskal");
+      finalTopic = finalTopic.replace(/Kruskal s/i, "Kruskal's");
+      
+      if (finalTopic.toLowerCase().includes("kruskal's algorithm")) {
+         finalTopic = "Kruskal's Algorithm";
+      }
+
+      const invalidTopic =
+        !topic ||
+        topic.length < 4 ||
+        /^[0-9]+$/.test(topic) ||
+        /^[^A-Za-z]+$/.test(topic);
+
+      if (invalidTopic) {
+        toast.error(
+          "Lecture title couldn't be detected. Please upload a clear image of the topic."
+        );
+        setTitle("");
+        return;
+      }
+
+      const detectedSubject = detectSubject(cleanedText);
+
+      setTitle(finalTopic);
+
+      if (detectedSubject) {
+        setCategory(detectedSubject);
+        toast.success(`Subject Detected: ${detectedSubject}`);
+      }
+
+      toast.success(`Detected Topic: ${finalTopic}`);
+
+      if (topic && topic.length > 3) {
+        await fetchYoutubeVideo(finalTopic, detectedSubject);
+      }
     }
-  };
+  } catch (error) {
+    toast.dismiss();
+    console.log(error);
+    toast.error("OCR failed");
+  } finally {
+    setIsOcrLoading(false);   // ← Added
+  }
+};
 
   const fetchYoutubeVideo = async (topic, subject = "") => {
     const loading = toast.loading("Searching YouTube lecture...");
@@ -1578,7 +1574,7 @@ Logout
         Save Lectures
       </span>
       <br />
-      Add title + YouTube link + subject to instantly revisit lectures later.
+      Add title + timestamp  to instantly revisit lectures later.
       Add channel name for more accurate lecture matching.
     </div>
 
@@ -1610,6 +1606,14 @@ Logout
   </div>
 
 </div>
+    {/* ←←← ADD THE LOADING MESSAGE HERE */}
+
+{isOcrLoading && (
+  <p className="text-blue-600 font-medium text-center py-2">
+    🔍 Detecting topic from image... Please wait
+  </p>
+)}
+
         <input
           type="text"
           placeholder="Topic title"
@@ -2066,10 +2070,9 @@ fill={COLORS[index]}
   )
   .slice(0, 10)
   .map((snap) => (
-     <div
+          <div
  key={snap._id}
- className={` rounded-2xl shadow-lg p-5
-
+ className={` rounded-2xl shadow-lg overflow-hidden p-5
   ${
     darkMode
       ? "bg-gray-800 text-white"
@@ -2077,39 +2080,48 @@ fill={COLORS[index]}
   }
 `}
      >
-   <h3 className="text-xl font-bold mb-3">
-     {snap.title}
-       </h3>
-            {
-     snap.timestamp > 0 && (
-      <p className={`mb-4
+   {/* Thumbnail */}
+   <div className="relative mb-4">
+     {snap.image ? (
+       <img
+         src={snap.image}
+         alt="snap"
+         className="w-full h-48 object-cover rounded-xl"
+       />
+     ) : snap.thumbnail ? (
+       <img
+         src={snap.thumbnail}
+         alt="youtube thumbnail"
+         className="w-full h-48 object-cover rounded-xl"
+       />
+     ) : (
+       <div className="w-full h-48 bg-gray-200 dark:bg-gray-700 rounded-xl flex items-center justify-center">
+         <span className="text-gray-500">📺 No Preview</span>
+       </div>
+     )}
+   </div>
 
+   <h3 className="text-xl font-bold mb-3 line-clamp-2">
+     {snap.title}
+   </h3>
+
+   {snap.timestamp > 0 && (
+     <p className={`mb-4 text-sm
   ${
     darkMode
       ? "text-gray-300"
       : "text-gray-600"
   }
 `}>
-      ⏱ Resume at:
-       {" "}
-    {
-     formatTimestamp(
-    snap.timestamp
-    )
-       }
-        </p>
-      )
-          }
-      <button
- onClick={() =>  watchSnap(snap)
-      }
- className="bg-green-500 text-white px-4 py-2 rounded-lg"
-     >
-  {
-  snap.videoUrl
-    ? "Continue"
-    : "Resume Search"
-}
+       ⏱ Resume at: {formatTimestamp(snap.timestamp)}
+     </p>
+   )}
+
+   <button
+ onClick={() => watchSnap(snap)}
+ className="bg-green-500 hover:bg-green-600 text-white px-6 py-2.5 rounded-lg w-full font-medium transition"
+   >
+     {snap.videoUrl ? "▶ Continue Watching" : "🔍 Resume Search"}
    </button>
           </div>
         ))
@@ -2144,15 +2156,26 @@ fill={COLORS[index]}
     }
   `}
 >
- {
-     snap.image && (
-        <img
-        src={snap.image}
-         alt="snap"
+<div className="relative">
+  {snap.image ? (
+    <img
+      src={snap.image}
+      alt="snap"
       className="w-full h-56 object-cover"
-      />
-  )
- }
+    />
+  ) : snap.thumbnail ? (
+    <img
+      src={snap.thumbnail}
+      alt="youtube thumbnail"
+      className="w-full h-56 object-cover"
+    />
+  ) : (
+    <div className="w-full h-56 bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
+      <span className="text-gray-500">No Image</span>
+    </div>
+  )}
+</div>
+
   <div className="p-5">
     {
     editingId === snap._id ? (
@@ -2368,16 +2391,16 @@ fill={COLORS[index]}
     </option>
 
   </select>
-         <button
-     onClick={() =>
-         deleteSnap(
-        snap._id
-            )
-        }
-        className="bg-red-500 text-white px-4 py-2 rounded-lg"
-      >
-     Delete
-       </button>
+         <button 
+  onClick={() => {
+    if (window.confirm("Are you sure you want to delete this snap?")) {
+      deleteSnap(snap._id);
+    }
+  }} 
+  className="bg-red-500 text-white px-4 py-2 rounded-lg"
+>
+  Delete
+</button>
  </div>
  </>
    )
