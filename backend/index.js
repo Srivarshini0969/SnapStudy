@@ -838,14 +838,22 @@ app.get( "/api/snaps",
   let thumbnail = null;
 
   if (snap.videoUrl) {
-    const videoId = snap.videoUrl.match(/(?:youtu\.be\/|youtube\.com.*v=|youtube\.com.*\/embed\/)([^?&"'>]+)/);
-    thumbnail = videoId ? `https://img.youtube.com/vi/${videoId[1]}/hqdefault.jpg` : null;
+    // Improved YouTube thumbnail extraction
+    const videoIdMatch = snap.videoUrl.match(
+      /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/v\/)([^?&"'>]+)/
+    );
+    
+    if (videoIdMatch && videoIdMatch[1]) {
+      thumbnail = `https://img.youtube.com/vi/${videoIdMatch[1]}/hqdefault.jpg`;
+    }
   }
 
   return {
     ...snap._doc,
     watchLink: generateWatchLink(snap.videoUrl, snap.timestamp),
-    searchLink: `https://www.youtube.com/results?search_query=${encodeURIComponent(`${snap.title} ${snap.channelName || ""}`)}`,
+    searchLink: `https://www.youtube.com/results?search_query=${encodeURIComponent(
+      `${snap.title} ${snap.channelName || ""}`
+    )}`,
     thumbnail: thumbnail
   };
 });
