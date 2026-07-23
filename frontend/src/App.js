@@ -154,40 +154,27 @@ const fetchSnaps = useCallback(async () => {
 /* ===================================
    WATCH SNAP
 =================================== */
-
 const watchSnap = async (snap) => {
   try {
     await axios.put(
       `${process.env.REACT_APP_API_URL}/api/snaps/view/${snap._id}`,
       {},
-      {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`
-        }
-      }
+      { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
     );
 
-    if (snap.videoUrl) {
-      window.open(
-        snap.watchLink || snap.videoUrl,
-        "_blank"
-      );
-    } else {
-      const searchQuery =
-        `${snap.title || ""} ${snap.category || ""} lecture`;
+    let targetUrl = snap.watchLink || snap.videoUrl;
 
-      const youtubeUrl =
-        `https://www.youtube.com/results?search_query=${encodeURIComponent(searchQuery)}`;
-
-      window.open(
-        youtubeUrl,
-        "_blank"
-      );
+    if (!targetUrl) {
+      // Improved fallback search
+      const searchQuery = `${snap.title} ${snap.category || ""} full lecture tutorial`;
+      targetUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(searchQuery)}`;
     }
 
+    window.open(targetUrl, "_blank");
     await fetchSnaps();
   } catch (error) {
     console.log(error.response?.data || error);
+    toast.error("Failed to open lecture");
   }
 };
 
@@ -767,49 +754,53 @@ const detectSubject = (text) => {
   }
 };
 
-  const fetchYoutubeVideo = async (topic, subject = "") => {
-    const loading = toast.loading("Searching YouTube lecture...");
+ const fetchYoutubeVideo = async (topic, subject = "") => {
+  const loading = toast.loading("Searching best YouTube lecture...");
 
-    try {
-      const searchQuery = `${topic} ${subject}`.trim() + " full lecture";
+  try {
+    // Improved search query
+    let searchQuery = topic.trim();
 
-      const result = await SearchYoutube.GetListByKeyword(
-        searchQuery,
-        false,
-        1
-      );
-      
-      console.log("Search Query:", searchQuery);
-      console.log("YouTube Result:", result);
-
-      toast.dismiss(loading);
-
-      const firstVideo = result?.items?.[0];
-
-      if (!firstVideo) {
-        toast.error("No lecture found.");
-        return;
-      }
-
-      const videoId =
-        firstVideo.id?.videoId ||
-        firstVideo.videoId ||
-        firstVideo.id;
-        
-      if (!videoId) {
-        toast.error("Invalid YouTube result.");
-        return;
-      }
-      
-      const videoLink = `https://www.youtube.com/watch?v=${videoId}`;
-      setVideoUrl(videoLink);
-
-    } catch (error) {
-      toast.dismiss(loading);
-      console.error("YouTube Error:", error);
-      toast.error("Lecture couldn't be searched correctly.");
+    if (subject) {
+      searchQuery += ` ${subject}`;
     }
-  };
+
+    // Add smart keywords for better results
+    searchQuery += " full lecture tutorial explanation";
+
+    const result = await SearchYoutube.GetListByKeyword(
+      searchQuery,
+      false,
+      1
+    );
+
+    toast.dismiss(loading);
+
+    const firstVideo = result?.items?.[0];
+
+    if (!firstVideo) {
+      toast.error("No lecture found. Try manual search.");
+      return;
+    }
+
+    const videoId = firstVideo.id?.videoId || firstVideo.videoId || firstVideo.id;
+
+    if (!videoId) {
+      toast.error("Invalid YouTube result.");
+      return;
+    }
+
+    const videoLink = `https://www.youtube.com/watch?v=${videoId}`;
+    setVideoUrl(videoLink);
+
+    toast.success(`Found lecture: ${firstVideo.title || topic}`);
+
+  } catch (error) {
+    toast.dismiss(loading);
+    console.error("YouTube Error:", error);
+    toast.error("Could not find lecture. You can paste link manually.");
+  }
+};
   
 /* ===================================
    UPLOAD SNAP
