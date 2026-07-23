@@ -592,11 +592,10 @@ const detectSubject = (text) => {
   return bestSubject;
 };
 
-  const extractTextFromImage = async (file) => {
-  setIsOcrLoading(true);   // ← Added for loading state
-
+const extractTextFromImage = async (file) => {
+  setIsOcrLoading(true);
   try {
-    const loading = toast.loading("Detecting topic...");
+    const loading = toast.loading("Analyzing image...");
 
     const result = await Tesseract.recognize(file, "eng", {
       logger: (m) => console.log(m),
@@ -605,154 +604,73 @@ const detectSubject = (text) => {
     toast.dismiss(loading);
 
     const rawText = result.data.text;
-    console.log("OCR Text:\n", rawText);
+    console.log("Raw OCR:", rawText);
 
     const cleanedText = rawText
       .replace(/[|]/g, "I")
-      .replace(/[^a-zA-Z0-9\s-]/g, " ")
+      .replace(/[^a-zA-Z0-9\s-']/g, " ")
       .replace(/\s+/g, " ")
       .trim();
 
-    if (cleanedText) {
-      const ocrLines = result.data.lines || [];
+    if (!cleanedText) {
+      toast.error("No text detected. Try a clearer image.");
+      setIsOcrLoading(false);
+      return;
+    }
 
-      // Extract lines with decent confidence
-      let lines = ocrLines
-        .filter((l) => l.confidence >= 40)
-        .map((l) => l.text.trim().replace(/\s+/g, " "))
-        .filter((line) => line.length > 2);
+    // Better line extraction
+    let lines = result.data.lines 
+      ? result.data.lines
+          .filter(l => l.confidence >= 35)
+          .map(l => l.text.trim())
+      : rawText.split("\n").map(l => l.trim()).filter(l => l.length > 3);
 
-      // Fallback if line data is missing
-      if (lines.length === 0) {
-        lines = rawText
-          .split("\n")
-          .map((line) => line.trim())
-          .filter((line) => line.length > 2)
-          .map((line) => line.replace(/\s+/g, " "));
-      }
+    // Score lines better for handwritten
+    let topic = lines.sort((a, b) => {
+      const scoreA = getLineScore(a, lines.indexOf(a));
+      const scoreB = getLineScore(b, lines.indexOf(b));
+      return scoreB - scoreA;
+    })[0] || cleanedText.substring(0, 60);
 
-      const stopWords = [
-        "department", "university", "college", "faculty", "semester",
-        "academic", "year", "session", "lecture", "page", "slide",
-        "copyright", "http", "https", "www", "chapter", "topic",
-        "today", "class", "notes", "professor", "assistant", "course",
-        "unit", "week", "application", "applications"
-      ];
+    // Clean common OCR errors
+    topic = topic
+      .replace(/Ilyuskals?/i, "Kruskal's")
+      .replace(/Kruskal s/i, "Kruskal's")
+      .replace(/Algorithim/i, "Algorithm")
+      .replace(/Krugkal/i, "Kruskal");
 
-      const headingKeywords = [
-        "Binary Tree", "Binary Tree Array", "Bottom up Parsing",
-        "Top down Parsing", "AVL Tree", "BST", "Heap", "Graph",
-        "DFS", "BFS", "Recursion", "Dynamic Programming",
-        "Compiler Design", "Lexical Analysis", "Syntax Analysis",
-        "Parsing", "Deadlock", "Process Scheduling", "Normalization",
-        "ER Diagram", "SQL", "TCP", "UDP", "OSI Model", "React Hooks",
-        "Promises", "Express JS", "Implementation", "Algorithm",
-        "Data Structure", "Binary Search", "Merge Sort", "Quick Sort",
-        "Insertion Sort", "Selection Sort", "Bubble Sort", "Linked List",
-        "Stack", "Queue", "Hash Table", "Greedy", "Backtracking",
-        "Finite Automata", "Shift Reduce Parsing", "Operator Precedence",
-        "LL Parser", "LR Parser", "MongoDB", "Kruskal", "Prim", "Dijkstra"
-      ];
+    const detectedSubject = detectSubject(cleanedText);
 
-      // 1. Filter out obvious junk lines
-      const candidateLines = lines.filter((line) => {
-        const lower = line.toLowerCase();
-        if (line.length < 4 || line.length > 80) return false;
-        if (stopWords.some((word) => lower.includes(word))) return false;
-        if (/^[0-9\s]+$/.test(line)) return false;
-        return true;
-      });
+    setTitle(topic);
+    if (detectedSubject) setCategory(detectedSubject);
 
-      // 2. Score the candidates based on Heuristics AND Position
-      let topic = candidateLines.sort((a, b) => {
-        const idxA = lines.indexOf(a);
-        const idxB = lines.indexOf(b);
+    toast.success(`Detected: ${topic}`);
 
-        const getScore = (line, idx) => {
-          let score = 0;
-          const words = line.split(/\s+/);
-
-          // Standard length heuristics
-          score += 100 - Math.abs(words.length - 3) * 10;
-          score += 100 - Math.abs(line.length - 25);
-
-          // Formatting & grammar heuristics
-          if (/^[A-Z]/.test(line)) score += 20;
-          if (/[.!?]/.test(line)) score -= 40;
-          if (/\bis\b|\bare\b|\bwas\b|\bwere\b/i.test(line)) score -= 40;
-          if (/\b(ex|example|input|output)\b/i.test(line)) score -= 20;
-
-          // POSITIONAL BONUS
-          if (idx === 0) score += 120;
-          else if (idx === 1) score += 100;
-          else if (idx === 2) score += 80;
-          else if (idx <= 5) score += 40;
-          
-          // Penalize random body text
-          if (idx > 5) score -= 60;
-
-          // Keyword Match Bonus
-          if (headingKeywords.some((h) => line.toLowerCase().includes(h.toLowerCase()))) {
-            score += 40;
-          }
-
-          return score;
-        };
-
-        return getScore(b, idxB) - getScore(a, idxA);
-      })[0] || "";
-
-      let finalTopic = topic;
-
-      // Clean up common OCR typos
-      finalTopic = finalTopic.replace(/Algor\b/i, "Algorithm");
-      finalTopic = finalTopic.replace(/Algorithim/i, "Algorithm");
-      finalTopic = finalTopic.replace(/Algoritnm/i, "Algorithm");
-      finalTopic = finalTopic.replace(/Krugkal/i, "Kruskal");
-      finalTopic = finalTopic.replace(/Krugkald/i, "Kruskal");
-      finalTopic = finalTopic.replace(/Kruskal s/i, "Kruskal's");
-      
-      if (finalTopic.toLowerCase().includes("kruskal's algorithm")) {
-         finalTopic = "Kruskal's Algorithm";
-      }
-
-      const invalidTopic =
-        !topic ||
-        topic.length < 4 ||
-        /^[0-9]+$/.test(topic) ||
-        /^[^A-Za-z]+$/.test(topic);
-
-      if (invalidTopic) {
-        toast.error(
-          "Lecture title couldn't be detected. Please upload a clear image of the topic."
-        );
-        setTitle("");
-        return;
-      }
-
-      const detectedSubject = detectSubject(cleanedText);
-
-      setTitle(finalTopic);
-
-      if (detectedSubject) {
-        setCategory(detectedSubject);
-        toast.success(`Subject Detected: ${detectedSubject}`);
-      }
-
-      toast.success(`Detected Topic: ${finalTopic}`);
-
-      if (topic && topic.length > 3) {
-        await fetchYoutubeVideo(finalTopic, detectedSubject);
-      }
+    if (topic.length > 3) {
+      await fetchYoutubeVideo(topic, detectedSubject);
     }
   } catch (error) {
-    toast.dismiss();
     console.log(error);
-    toast.error("OCR failed");
+    toast.error("OCR failed. Try clearer image.");
   } finally {
-    setIsOcrLoading(false);   // ← Added
+    setIsOcrLoading(false);
   }
 };
+
+// Helper function
+const getLineScore = (line, index) => {
+  let score = 0;
+  if (!line) return 0;
+
+  score += 100 - Math.abs(line.length - 25) * 2;
+  if (/^[A-Z]/.test(line)) score += 30;
+  if (index < 3) score += 80;
+  if (line.includes("Algorithm") || line.includes("Tree")) score += 50;
+
+  return score;
+};
+
+ 
 
  const fetchYoutubeVideo = async (topic, subject = "") => {
   const loading = toast.loading("Searching best YouTube lecture...");
@@ -1749,15 +1667,26 @@ Logout
   className="border p-2 rounded-lg"
 />
 
-{
-  image && (
+{image && (
+  <div className="relative">
     <img
       src={URL.createObjectURL(image)}
       alt="preview"
       className="w-full max-h-[500px] object-contain rounded-xl"
     />
-  )
-}
+    <button
+      type="button"
+      onClick={() => {
+        setImage(null);
+        setTitle("");
+        setCategory("");
+      }}
+      className="absolute top-2 right-2 bg-red-500 text-white text-xs px-3 py-1 rounded-full hover:bg-red-600"
+    >
+      Remove Image
+    </button>
+  </div>
+)}
 
 <button
   type="submit"
