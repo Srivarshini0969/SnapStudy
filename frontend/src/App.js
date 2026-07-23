@@ -38,7 +38,6 @@ const [forgotSecretName,
   const [note, setNote] = useState("");
 
   const [isOcrLoading, setIsOcrLoading] = useState(false);
-const [isYoutubeLoading, setIsYoutubeLoading] = useState(false);
 
   const [category, setCategory] = useState("");
 

@@ -834,15 +834,13 @@ app.get( "/api/snaps",
           lastViewed: -1
         });
 
-   const updatedSnaps = snaps.map((snap) => {
+ const updatedSnaps = snaps.map((snap) => {
   let thumbnail = null;
 
   if (snap.videoUrl) {
-    // Improved YouTube thumbnail extraction
     const videoIdMatch = snap.videoUrl.match(
-      /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/v\/)([^?&"'>]+)/
+      /(?:youtu\.be\/|youtube\.com.*v=|youtube\.com.*embed\/|youtube\.com\/v\/)([^?&"'>]+)/
     );
-    
     if (videoIdMatch && videoIdMatch[1]) {
       thumbnail = `https://img.youtube.com/vi/${videoIdMatch[1]}/hqdefault.jpg`;
     }
@@ -852,9 +850,9 @@ app.get( "/api/snaps",
     ...snap._doc,
     watchLink: generateWatchLink(snap.videoUrl, snap.timestamp),
     searchLink: `https://www.youtube.com/results?search_query=${encodeURIComponent(
-      `${snap.title} ${snap.channelName || ""}`
+      `${snap.title || ""} ${snap.channelName || ""}`
     )}`,
-    thumbnail: thumbnail
+    thumbnail
   };
 });
 
