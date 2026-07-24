@@ -966,6 +966,34 @@ app.post("/api/snaps",
 
   }
 );
+
+// Capture from YouTube
+app.post("/api/snaps/capture", authMiddleware, upload.single("image"), async (req, res) => {
+  try {
+    const { title, videoUrl, timestamp, note, category } = req.body;
+
+    const newSnap = new Snap({
+      userId: req.user.id,
+      title: title || "YouTube Lecture Snapshot",
+      videoUrl: videoUrl,
+      timestamp: convertTimestampToSeconds(timestamp),
+      note: note || "",
+      category: category || "",
+      image: req.file ? req.file.path : null,
+      status: "Pending"
+    });
+
+    await newSnap.save();
+
+    res.status(201).json({
+      message: "Snapshot captured successfully!",
+      snap: newSnap
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "Failed to capture snapshot" });
+  }
+});
 /* ===================================
    UPDATE SNAP
 =================================== */

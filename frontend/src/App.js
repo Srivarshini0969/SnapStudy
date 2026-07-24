@@ -624,11 +624,13 @@ const extractTextFromImage = async (file) => {
       || cleaned.substring(0, 80);
 
     // Smart general cleanup
-    topic = topic
-      .replace(/Krusk[ha]ld?|Kushal|Ilyuskals?/i, "Kruskal's")
-      .replace(/Algor[ithm\s]*[Bba]?|Al gor|smnle|wuthod/i, "Algorithm")
-      .replace(/Kruskal s/i, "Kruskal's")
-      .replace(/Algorithim|Algoritnm/i, "Algorithm");
+ topic = topic
+      .replace(/Krushkald?|Kruskald?|Kushal|Ilyuskals?|Kruskal d/i, "Kruskal's")
+      .replace(/Algor\s*[Bba]?|Al gor|smnle|wuthod|Algor ithm/i, "Algorithm")
+      .replace(/Kruskal s|Kruskals/i, "Kruskal's")
+      .replace(/Algorithim|Algoritnm|Al gorithm/i, "Algorithm")
+      .replace(/Kruskal's Algor/i, "Kruskal's Algorithm");
+
 
     const detectedSubject = detectSubject(cleaned);
 
