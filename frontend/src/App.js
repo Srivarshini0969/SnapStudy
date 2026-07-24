@@ -595,7 +595,7 @@ const detectSubject = (text) => {
 const extractTextFromImage = async (file) => {
   setIsOcrLoading(true);
   try {
-    const loading = toast.loading("Analyzing handwritten note...");
+    const loading = toast.loading("Analyzing image...");
 
     const result = await Tesseract.recognize(file, "eng", {
       logger: (m) => console.log(m),
@@ -613,58 +613,59 @@ const extractTextFromImage = async (file) => {
       .trim();
 
     if (!cleanedText) {
-      toast.error("No text detected.");
+      toast.error("No text detected. Try a clearer image.");
+      setIsOcrLoading(false);
       return;
     }
 
-    let lines = result.data.lines 
-      ? result.data.lines.filter(l => l.confidence >= 30).map(l => l.text.trim())
-      : rawText.split("\n").map(l => l.trim()).filter(l => l.length > 4);
+    // Better line extraction
+    let lines = result.data.lines
+      ? result.data.lines
+          .filter(l => l.confidence >= 35)
+          .map(l => l.text.trim())
+      : rawText.split("\n").map(l => l.trim()).filter(l => l.length > 3);
 
+    // Score lines better for handwritten
     let topic = lines.sort((a, b) => {
-      return getLineScore(b, lines.indexOf(b)) - getLineScore(a, lines.indexOf(a));
-    })[0] || cleanedText.substring(0, 80);
+      const scoreA = getLineScore(a, lines.indexOf(a));
+      const scoreB = getLineScore(b, lines.indexOf(b));
+      return scoreB - scoreA;
+    })[0] || cleanedText.substring(0, 60);
 
-    // Stronger cleanup for Kruskal
+    // Clean common OCR errors
     topic = topic
-      .replace(/Krushkald?|Kruskald?|Ilyuskals?/i, "Kruskal's")
-      .replace(/Algor\s*Ba|Al gor|smnle|wuthod/i, "Algorithm")
+      .replace(/Ilyuskals?/i, "Kruskal's")
       .replace(/Kruskal s/i, "Kruskal's")
-      .replace(/Algorithim|Algoritnm/i, "Algorithm");
+      .replace(/Algorithim/i, "Algorithm")
+      .replace(/Krugkal/i, "Kruskal");
 
-    const detectedSubject = detectSubject(cleanedText || topic);
+    const detectedSubject = detectSubject(cleanedText);
 
     setTitle(topic);
     if (detectedSubject) setCategory(detectedSubject);
 
     toast.success(`Detected: ${topic}`);
 
-    if (topic.length > 5) {
+    if (topic.length > 3) {
       await fetchYoutubeVideo(topic, detectedSubject);
     }
   } catch (error) {
     console.log(error);
-    toast.error("OCR failed. Try clearer photo.");
+    toast.error("OCR failed. Try clearer image.");
   } finally {
     setIsOcrLoading(false);
   }
 };
 
-// Helper function - Replace existing one
+// Helper function - Keep this too
 const getLineScore = (line, index) => {
   let score = 0;
   if (!line) return 0;
 
-  const lengthScore = 100 - Math.abs(line.length - 30) * 1.5;
-  score += lengthScore;
-
-  if (/^[A-Z]/.test(line)) score += 40;
-  if (line.includes("'")) score += 20;
-  if (index < 4) score += 100;
-  if (index < 2) score += 50;
-
-  // Boost for algorithm-related words
-  if (/kruskal|algorithm|graph|tree|mst|spanning/i.test(line)) score += 80;
+  score += 100 - Math.abs(line.length - 25) * 2;
+  if (/^[A-Z]/.test(line)) score += 30;
+  if (index < 3) score += 80;
+  if (line.includes("Algorithm") || line.includes("Tree")) score += 50;
 
   return score;
 };
