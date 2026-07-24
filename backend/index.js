@@ -967,33 +967,52 @@ app.post("/api/snaps",
   }
 );
 
-// Capture from YouTube
-app.post("/api/snaps/capture", authMiddleware, upload.single("image"), async (req, res) => {
-  try {
-    const { title, videoUrl, timestamp, note, category } = req.body;
+// Capture from YouTube - Improved Version
+app.post("/api/snaps/capture", 
+  authMiddleware, 
+  upload.single("image"), 
+  async (req, res) => {
+    try {
+      const { 
+        title, 
+        videoUrl, 
+        timestamp, 
+        note, 
+        category 
+      } = req.body;
 
-    const newSnap = new Snap({
-      userId: req.user.id,
-      title: title || "YouTube Lecture Snapshot",
-      videoUrl: videoUrl,
-      timestamp: convertTimestampToSeconds(timestamp),
-      note: note || "",
-      category: category || "",
-      image: req.file ? req.file.path : null,
-      status: "Pending"
-    });
+      if (!videoUrl) {
+        return res.status(400).json({ message: "Video URL is required" });
+      }
 
-    await newSnap.save();
+      const newSnap = new Snap({
+        userId: req.user.id,
+        title: title || "YouTube Lecture Snapshot",
+        videoUrl: videoUrl,
+        timestamp: convertTimestampToSeconds(timestamp || 0),
+        note: note || "Captured from YouTube",
+        category: category || "",
+        image: req.file ? req.file.path : null,
+        status: "Pending",
+        lastViewed: new Date()
+      });
 
-    res.status(201).json({
-      message: "Snapshot captured successfully!",
-      snap: newSnap
-    });
-  } catch (error) {
-    console.log(error);
-    res.status(500).json({ message: "Failed to capture snapshot" });
+      await newSnap.save();
+
+      res.status(201).json({
+        message: "Snapshot captured successfully!",
+        snap: newSnap
+      });
+    } catch (error) {
+      console.error("Capture Error:", error);
+      res.status(500).json({ 
+        message: "Failed to capture snapshot",
+        error: error.message 
+      });
+    }
   }
-});
+);
+
 /* ===================================
    UPDATE SNAP
 =================================== */
