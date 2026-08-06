@@ -1699,44 +1699,6 @@ Logout
           />
         </div>
 
-        {/* FILTERS  */}
-
-  <div className="flex flex-wrap justify-center gap-3 mt-6">
-          {
-         [
-              "All",
-              "DSA",
-              "Python",
-              "Java",
-              "DBMS",
-              "OPERATING SYSTEMS",
-              "JavaScript",
-              "ReactJS",
-              "NodeJS",
-              "COMPUTER NETWORKS",
-              "COMPILER DESIGN",
-              "FRONTEND DEVELOPMENT",
-              "BACKEND DEVELOPMENT",
-                 "AI/ML",
-                 "NONE",
-            ].map((item) => (
-              <button
-                key={item}
-                onClick={() =>
-                  setSelectedCategory(
-                    item === "All"
-                      ? ""
-                      : item
-                  )
-                }
-className="bg-blue-500 text-white px-4 py-2 rounded-lg"
-              >
-                {item}
-              </button>
-            ))
-          }
-        </div>
-
         {/* SNAPS  */}
  <div className="mt-14">
   <div className="grid grid-cols-2 md:grid-cols-4 gap-5 mb-10">
