@@ -1,0 +1,25 @@
+{
+  "manifest_version": 3,
+  "name": "SnapStudy Capture",
+  "version": "1.0",
+  "description": "Capture YouTube lecture + exact timestamp",
+  "permissions": ["activeTab", "scripting", "storage", "tabs"],
+  "host_permissions": [
+    "https://www.youtube.com/*",
+    "http://localhost:5000/*",
+    "https://*/*"
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "SnapStudy Capture"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://www.youtube.com/*"],
+      "js": ["content.js"]
+    }
+  ]
+}

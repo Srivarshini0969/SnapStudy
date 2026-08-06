@@ -162,10 +162,16 @@ const watchSnap = async (snap) => {
       { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
     );
 
-    let targetUrl = snap.watchLink || snap.videoUrl;
+    let targetUrl = snap.videoUrl || snap.watchLink;
+
+    if (targetUrl && snap.timestamp > 0) {
+      // Force exact timestamp
+      const url = new URL(targetUrl);
+      url.searchParams.set("t", `${snap.timestamp}s`);
+      targetUrl = url.toString();
+    }
 
     if (!targetUrl) {
-      // Improved fallback search
       const searchQuery = `${snap.title} ${snap.category || ""} full lecture tutorial`;
       targetUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(searchQuery)}`;
     }
@@ -323,7 +329,8 @@ const SUBJECTS = [
   "COMPILER DESIGN",
   "FRONTEND DEVELOPMENT",
   "BACKEND DEVELOPMENT",
-  "AI/ML"
+  "AI/ML",
+  "NONE"
 ];
 
 const analytics = SUBJECTS.reduce((acc, subject) => {
@@ -873,12 +880,16 @@ const updateSnap = async (id) => {
       {
         title: editForm.title,
         note: editForm.note,
-        category: editForm.category
+        category: editForm.category,
+        videoUrl: editForm.videoUrl,
+        timestamp: editForm.timestamp,   // make sure backend accepts this
+        channelName: editForm.channelName
       },
       authHeader
     );
     toast.success("Snap updated successfully!");
     setEditingId(null);
+    await fetchSnaps();
   } catch (error) {
     console.log(error.response?.data || error);
     toast.error("Update failed");
@@ -1591,64 +1602,7 @@ Logout
     }
   `}
 />
-        <select
-          value={category}
-          onChange={(e) =>
-            setCategory(e.target.value)
-          }
-        className={`border p-3 rounded-lg
-  ${
-    darkMode
-      ? "bg-gray-700 text-white"
-      : "bg-white text-black"
-  }
-`}
-        >
-          <option value="">
-            Select Subject (optional)
-          </option>
-      <option value="DSA">
-            DSA
-          </option>
-<option value="COMPILER DESIGN">
-            COMPILER DESIGN
-          </option>
-          <option value="JavaScript">
-            JavaScript
-          </option>
- <option value="Python">
-  Python
-</option>
-<option value="ReactJS">
-  ReactJS
-</option>
-<option value="Java">
-  Java
-</option>
-
-<option value="NodeJS">
-  NodeJS
-</option>
- <option value="DBMS">
-  DBMS
- </option>
-<option value="FRONTEND DEVELOPMENT">
-            FRONTEND DEVELOPMENT
-          </option>
-  <option value="BACKEND DEVELOPMENT">
-  BACKEND DEVELOPMENT
-</option>
-
-<option value="AI/ML">
-  AI/ML
-</option>
-          <option value="OPERATING SYSTEMS">
-            OPERATING SYSTEMS
-          </option>
-          <option value="COMPUTER NETWORKS">
-            COMPUTER NETWORKS
-          </option>
-        </select>
+ 
        <input
   type="file"
  onChange={async (e) => {
@@ -1740,6 +1694,7 @@ Logout
               "FRONTEND DEVELOPMENT",
               "BACKEND DEVELOPMENT",
                  "AI/ML",
+                 "NONE",
             ].map((item) => (
               <button
                 key={item}
@@ -2178,7 +2133,9 @@ fill={COLORS[index]}
 <option value="AI/ML">
   AI/ML
 </option>
-
+<option value="NONE">
+  NONE
+</option>
     </select>
 <button
   onClick={() =>
