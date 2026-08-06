@@ -1602,6 +1602,30 @@ Logout
     }
   `}
 />
+   {/* Select Subject */}
+<select
+  value={category}
+  onChange={(e) => setCategory(e.target.value)}
+  className={`border p-3 rounded-lg
+    ${darkMode ? "bg-gray-700 text-white" : "bg-white text-black"}
+  `}
+>
+  <option value="">Select Subject (optional)</option>
+  <option value="DSA">DSA</option>
+  <option value="Python">Python</option>
+  <option value="Java">Java</option>
+  <option value="DBMS">DBMS</option>
+  <option value="OPERATING SYSTEMS">OPERATING SYSTEMS</option>
+  <option value="JavaScript">JavaScript</option>
+  <option value="ReactJS">ReactJS</option>
+  <option value="NodeJS">NodeJS</option>
+  <option value="COMPUTER NETWORKS">COMPUTER NETWORKS</option>
+  <option value="COMPILER DESIGN">COMPILER DESIGN</option>
+  <option value="FRONTEND DEVELOPMENT">FRONTEND DEVELOPMENT</option>
+  <option value="BACKEND DEVELOPMENT">BACKEND DEVELOPMENT</option>
+  <option value="AI/ML">AI/ML</option>
+  <option value="NONE">NONE</option>
+</select>
  
        <input
   type="file"
