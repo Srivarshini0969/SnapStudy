@@ -4,11 +4,11 @@ document.getElementById("loginBtn").addEventListener("click", async () => {
   const status = document.getElementById("status");
 
   try {
-    const res = await fetch("http://localhost:5000/api/auth/login", {  // ← change to your backend URL
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password })
-    });
+    const res = await fetch("https://snapstudy-d5p0.onrender.com/api/auth/login", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ email, password })
+});
 
     const data = await res.json();
 
