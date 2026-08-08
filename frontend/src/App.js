@@ -104,10 +104,7 @@ const googleClientId =
   const [searchTerm, setSearchTerm] =
     useState("");
 
-  const [
-    selectedCategory,
-    setSelectedCategory
-  ] = useState("");
+  const [selectedCategory] = useState("");
 
   /* ===================================
      EDIT STATES
