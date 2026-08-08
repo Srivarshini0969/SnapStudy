@@ -101,8 +101,7 @@ const googleClientId =
 
   const [snaps, setSnaps] = useState([]);
 
-  const [searchTerm, setSearchTerm] =
-    useState("");
+  
 
   const [selectedCategory] = useState("");
 
@@ -289,25 +288,11 @@ useEffect(() => {
      SEARCH + FILTER
   =================================== */
 
-
 const filteredSnaps = useMemo(() => {
-
   return snaps.filter((snap) => {
-
-    const matchesSearch =
-      `${snap.title || ""} ${snap.note || ""} ${snap.category || ""}`
-      .toLowerCase()
-      .includes(searchTerm.toLowerCase());
-
-    const matchesCategory =
-      selectedCategory === "" ||
-      snap.category === selectedCategory;
-
-    return matchesSearch && matchesCategory;
-
+    return selectedCategory === "" || snap.category === selectedCategory;
   });
-
-}, [snaps, searchTerm, selectedCategory]);
+}, [snaps, selectedCategory]);
 
 /* ===================================
    SUBJECT ANALYTICS
@@ -1674,27 +1659,7 @@ Logout
    
    {user && (
 <> 
-         {/* SEARCH + FILTERS */}
-
-        <div className="max-w-lg mx-auto mt-10">
-          <input
-            type="text"
-            placeholder="Search snaps..."
-            value={searchTerm}
-            onChange={(e) =>
-              setSearchTerm(
-                e.target.value
-              )
-            }
-   className={`w-full border p-3 rounded-xl
-  ${
-    darkMode
-      ? "bg-gray-700 text-white"
-      : "bg-white text-black"
-  }
-`}
-          />
-        </div>
+         
 
         {/* SNAPS  */}
  <div className="mt-14">

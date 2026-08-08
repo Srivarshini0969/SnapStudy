@@ -1,3 +1,10 @@
+window.addEventListener("load", async () => {
+  const { token } = await chrome.storage.local.get("token");
+  if (token) {
+    document.getElementById("status").textContent = "✅ Already logged in!";
+    document.getElementById("status").style.color = "green";
+  }
+});
 document.getElementById("loginBtn").addEventListener("click", async () => {
   const email = document.getElementById("email").value;
   const password = document.getElementById("password").value;
