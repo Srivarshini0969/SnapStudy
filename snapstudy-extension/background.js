@@ -40,7 +40,7 @@ chrome.action.onClicked.addListener(async (tab) => {
     formData.append("category", "NONE");
     formData.append("image", blob, "screenshot.png");
 
-    const response = await fetch("https://snapstudy-d5p0.onrender.com/api/snaps", {
+    const response = await fetch("https://snapstudy-production.up.railway.app/api/snaps", {
   method: "POST",
   headers: {
     Authorization: `Bearer ${token}`
