@@ -2,17 +2,54 @@
 <html>
 <head>
   <style>
-    body { width: 280px; padding: 16px; font-family: sans-serif; }
-    input { width: 100%; margin: 6px 0; padding: 8px; box-sizing: border-box; }
-    button { width: 100%; padding: 10px; background: #2563eb; color: white; border: none; border-radius: 6px; cursor: pointer; }
+    body {
+      width: 280px;
+      padding: 16px;
+      font-family: sans-serif;
+    }
+    input {
+      width: 100%;
+      margin: 6px 0;
+      padding: 8px;
+      box-sizing: border-box;
+    }
+    button {
+      width: 100%;
+      padding: 10px;
+      margin-top: 8px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    #loginBtn {
+      background: #2563eb;
+      color: white;
+    }
+    #captureBtn {
+      background: #16a34a;
+      color: white;
+      display: none;
+    }
+    #status {
+      font-size: 13px;
+      margin-top: 10px;
+    }
   </style>
 </head>
 <body>
-  <h3>SnapStudy Login</h3>
-  <input type="email" id="email" placeholder="Email" />
-  <input type="password" id="password" placeholder="Password" />
-  <button id="loginBtn">Login & Save Token</button>
-  <p id="status" style="font-size: 13px; margin-top: 10px;"></p>
+  <h3>SnapStudy</h3>
+
+  <div id="loginSection">
+    <input type="email" id="email" placeholder="Email" />
+    <input type="password" id="password" placeholder="Password" />
+    <button id="loginBtn">Login & Save Token</button>
+  </div>
+
+  <button id="captureBtn">📸 Capture Current Lecture</button>
+
+  <p id="status"></p>
+
   <script src="popup.js"></script>
 </body>
 </html>
