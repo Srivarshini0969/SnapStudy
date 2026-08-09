@@ -1,7 +1,7 @@
 window.addEventListener("load", async () => {
   const { token } = await chrome.storage.local.get("token");
   if (token) {
-    document.getElementById("status").textContent = "✅ Already logged in!";
+    document.getElementById("status").textContent = " Already logged in!";
     document.getElementById("status").style.color = "green";
   }
 });
@@ -11,7 +11,7 @@ document.getElementById("loginBtn").addEventListener("click", async () => {
   const status = document.getElementById("status");
 
   try {
-    const res = await fetch("https://snapstudy-d5p0.onrender.com/api/auth/login", {
+    const res = await fetch("https://snapstudy-production.up.railway.app/api/auth/login", {
   method: "POST",
   headers: { "Content-Type": "application/json" },
   body: JSON.stringify({ email, password })
@@ -21,7 +21,7 @@ document.getElementById("loginBtn").addEventListener("click", async () => {
 
     if (data.token) {
       await chrome.storage.local.set({ token: data.token });
-      status.textContent = "✅ Logged in successfully!";
+      status.textContent = " Logged in successfully!";
       status.style.color = "green";
     } else {
       status.textContent = data.message || "Login failed";
