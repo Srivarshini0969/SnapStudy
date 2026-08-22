@@ -102,7 +102,6 @@ const googleClientId =
   const [snaps, setSnaps] = useState([]);
 
   
-
   const [selectedCategory] = useState("");
 
   /* ===================================
