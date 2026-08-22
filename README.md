@@ -42,7 +42,10 @@ Deployment:
  ## Screenshots
 
 ### Dashboard
-![Dashboard](./screenshots/Screenshot%202026-05-25%20204206.png)
+![Dashboard](./Screenshot 2026-08-22 201656.png)
+
+### Snap Management
+![Snap Management](./Screenshot 2026-08-22 201755.png)
 
 ### Mobile UI
 ![Mobile UI](./screenshots/Screenshot%202026-05-25%20220120.png)
@@ -51,4 +54,7 @@ Deployment:
 ![OCR](./screenshots/Screenshot%202026-05-25%20204338.png)
 
 ### Continue Watching
-![Continue Watching](./screenshots/Screenshot%202026-05-25%20204241.png)
+![Continue Watching](./Screenshot 2026-08-22 202048.png)
+
+### Authentication
+![Authentication](./Screenshot 2026-08-22 201608.png)
