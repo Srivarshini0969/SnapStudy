@@ -288,10 +288,8 @@ useEffect(() => {
   =================================== */
 
 const filteredSnaps = useMemo(() => {
-  return snaps.filter((snap) => {
-    return selectedCategory === "" || snap.category === selectedCategory;
-  });
-}, [snaps, selectedCategory]);
+  return snaps;
+}, [snaps]);
 
 /* ===================================
    SUBJECT ANALYTICS
