@@ -657,35 +657,40 @@ const getLineScore = (line, index) => {
 };
 
  const fetchYoutubeVideo = async (topic, subject = "") => {
-  const loading = toast.loading("Searching best YouTube lecture...");
+
+  const loading = toast.loading("Searching YouTube lecture...");
+
+  const trySearch = async (query) => {
+    const result = await SearchYoutube.GetListByKeyword(query, false, 1);
+    return result?.items?.[0];
+  };
 
   try {
-    // Improved search query
-    let searchQuery = topic.trim();
+    // Attempt 1: topic + subject + "lecture" (most specific)
+    let query = subject
+      ? `${topic} ${subject} lecture`.trim()
+      : `${topic} lecture`.trim();
 
-    if (subject) {
-      searchQuery += ` ${subject}`;
+    let firstVideo = await trySearch(query);
+
+    // Attempt 2: broader fallback if nothing found — just the topic
+    if (!firstVideo) {
+      query = `${topic} tutorial`.trim();
+      firstVideo = await trySearch(query);
     }
-
-    // Add smart keywords for better results
-    searchQuery += " full lecture tutorial explanation";
-
-    const result = await SearchYoutube.GetListByKeyword(
-      searchQuery,
-      false,
-      1
-    );
 
     toast.dismiss(loading);
 
-    const firstVideo = result?.items?.[0];
-
     if (!firstVideo) {
-      toast.error("No lecture found. Try manual search.");
+      toast(
+        "Couldn't auto-find a matching lecture. Add a channel name for better matches, or paste the link manually.",
+        { icon: "🔍" }
+      );
       return;
     }
 
-    const videoId = firstVideo.id?.videoId || firstVideo.videoId || firstVideo.id;
+    const videoId =
+      firstVideo.id?.videoId || firstVideo.videoId || firstVideo.id;
 
     if (!videoId) {
       toast.error("Invalid YouTube result.");
@@ -694,13 +699,12 @@ const getLineScore = (line, index) => {
 
     const videoLink = `https://www.youtube.com/watch?v=${videoId}`;
     setVideoUrl(videoLink);
-
-    toast.success(`Found lecture: ${firstVideo.title || topic}`);
+    toast.success("Lecture found and linked!");
 
   } catch (error) {
     toast.dismiss(loading);
     console.error("YouTube Error:", error);
-    toast.error("Could not find lecture. You can paste link manually.");
+    toast.error("Search failed. You can paste the link manually.");
   }
 };
   
