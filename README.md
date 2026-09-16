@@ -86,4 +86,6 @@ YouTube opens at the saved point
 
 ### Upload Snap
 ![Upload Snap](./screenshots/upload-snap.png)
+### Upload Snap
+![Upload Snap](./screenshots/upload-snap.png)
 
