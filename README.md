@@ -67,10 +67,10 @@ YouTube opens at the saved point
 ## Screenshots
 
 ### Dashboard
-![Dashboard](./screenshots/Screenshot%202026-08-22%20201656.png)
+![Dashboard](./Screenshot%202026-08-22%20201656.png)
 
 ### Snap Management
-![Snap Management](./screenshots/Screenshot%202026-08-22%20201755.png)
+![Snap Management](./Screenshot%202026-08-22%20201755.png)
 
 ### Mobile UI
 ![Mobile UI](./screenshots/Screenshot%202026-05-25%20220120.png)
@@ -79,7 +79,7 @@ YouTube opens at the saved point
 ![OCR Detection](./screenshots/Screenshot%202026-05-25%20204338.png)
 
 ### Continue Watching
-![Continue Watching](./screenshots/Screenshot%202026-08-22%20202048.png)
+![Continue Watching](./Screenshot%202026-08-22%20202048.png)
 
 ### Authentication
-![Authentication](./screenshots/Screenshot%202026-08-22%20201608.png)
+![Authentication](./Screenshot%202026-08-22%20201608.png)
