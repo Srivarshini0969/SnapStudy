@@ -64,28 +64,22 @@ Click "Continue"
 YouTube opens at the saved point
 
 
-## Screenshots
-
-### Dashboard
-![Dashboard](./screenshots/dashboard.png)
-
-### Snap Management
-![Snap Management](./screenshots/snap-management.png)
-
-### Mobile UI
-![Mobile UI](./screenshots/mobile-ui.png)
-
-### OCR Detection
-![OCR Detection](./screenshots/ocr-detection.png)
-
-### Continue Watching
-![Continue Watching](./screenshots/continue-watching.png)
-
-### Authentication
-![Authentication](./screenshots/authentication.png)
-
-### Upload Snap
-![Upload Snap](./screenshots/upload-snap.png)
-### Upload Snap
-![Upload Snap](./screenshots/upload-snap.png)
-
+## Screenshots 
+ 
+### Dashboard 
+![Dashboard](./Screenshot%202026-08-22%20201656.png) 
+ 
+### Snap Management 
+![Snap Management](./Screenshot%202026-08-22%20201755.png) 
+ 
+### Mobile UI 
+![Mobile UI](./screenshots/Screenshot%202026-05-25%20220120.png) 
+ 
+### OCR Detection 
+![OCR Detection](./screenshots/Screenshot%202026-05-25%20204338.png) 
+ 
+### Continue Watching 
+![Continue Watching](./Screenshot%202026-08-22%20202048.png) 
+ 
+### Authentication 
+![Authentication](./Screenshot%202026-08-22%20201608.png)  
