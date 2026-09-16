@@ -55,7 +55,6 @@ Saved lectures can be opened directly from the stored timestamp.
 
 For example:
 
-```text
 YouTube Video
        ↓
 Saved Timestamp: 3:01:36
@@ -65,16 +64,24 @@ Click "Continue"
 YouTube opens at the saved point
 
 
-### Important
+## Screenshots
 
-GitHub will automatically create those little **anchor/link icons beside headings** when it renders your README. **You don't need to write anything for them.**
+### Dashboard
+![Dashboard](./screenshots/Screenshot%202026-08-22%20201656.png)
 
-Also, the screenshots themselves are **not the problem**. Your six screenshot references should be:
+### Snap Management
+![Snap Management](./screenshots/Screenshot%202026-08-22%20201755.png)
 
-```text
-./screenshots/dashboard.png
-./screenshots/snap-management.png
-./screenshots/mobile-ui.png
-./screenshots/ocr-detection.png
-./screenshots/continue-watching.png
-./screenshots/authentication.png
+### Mobile UI
+![Mobile UI](./screenshots/Screenshot%202026-05-25%20220120.png)
+
+### OCR Detection
+![OCR Detection](./screenshots/Screenshot%202026-05-25%20204338.png)
+
+### Continue Watching
+![Continue Watching](./screenshots/Screenshot%202026-08-22%20202048.png)
+
+### Authentication
+![Authentication](./screenshots/Screenshot%202026-08-22%20201608.png)
+
+
