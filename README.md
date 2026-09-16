@@ -63,3 +63,18 @@ Saved Timestamp: 3:01:36
 Click "Continue"
        ↓
 YouTube opens at the saved point
+
+
+### Important
+
+GitHub will automatically create those little **anchor/link icons beside headings** when it renders your README. **You don't need to write anything for them.**
+
+Also, the screenshots themselves are **not the problem**. Your six screenshot references should be:
+
+```text
+./screenshots/dashboard.png
+./screenshots/snap-management.png
+./screenshots/mobile-ui.png
+./screenshots/ocr-detection.png
+./screenshots/continue-watching.png
+./screenshots/authentication.png
