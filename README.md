@@ -83,5 +83,3 @@ YouTube opens at the saved point
 
 ### Authentication
 ![Authentication](./screenshots/Screenshot%202026-08-22%20201608.png)
-
-
