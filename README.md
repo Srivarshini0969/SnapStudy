@@ -140,7 +140,7 @@ When the saved snap is opened from the React application, the **Continue** optio
 
 ### Example
 
-```text
+
 Student is watching a YouTube lecture
              ↓
 Important concept at 52:14
@@ -154,4 +154,3 @@ Saved as a Snap
 Later click "Continue"
              ↓
 Lecture opens at 52:14
-```
