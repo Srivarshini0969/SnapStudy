@@ -83,3 +83,75 @@ YouTube opens at the saved point
 
 ### Authentication
 ![Authentication](./screenshots/authentication.png)
+
+---
+
+## Chrome Extension
+
+SnapStudy includes a **Chrome Extension built using Chrome Extension Manifest V3**.
+
+The extension allows students to capture an important moment while watching a YouTube lecture and save it directly to SnapStudy.
+
+### How It Works
+
+```text
+YouTube Lecture
+       ↓
+Chrome Extension
+       ↓
+Capture Screenshot + Current Timestamp
+       ↓
+Send Lecture Data to Backend
+       ↓
+Cloudinary → Screenshot
+MongoDB → Snap Details + Timestamp
+       ↓
+SnapStudy React App
+       ↓
+Uploaded Snaps
+       ↓
+Click "Continue"
+       ↓
+YouTube Opens at Saved Timestamp
+```
+
+### Extension Components
+
+- `manifest.json` — Chrome Extension configuration
+- `popup.html` — Extension popup interface
+- `popup.js` — Handles capture and communication logic
+- `content.js` — Interacts with the YouTube page
+- `background.js` — Handles extension background operations
+
+### Main Functionality
+
+The extension captures:
+
+- YouTube lecture URL
+- Current lecture timestamp
+- Lecture title
+- Screenshot of the current tab
+
+The captured information is sent to the SnapStudy backend and associated with the authenticated user.
+
+The screenshot is stored using **Cloudinary**, while lecture details and timestamp information are stored in **MongoDB**.
+
+When the saved snap is opened from the React application, the **Continue** option uses the stored timestamp to open the YouTube lecture from that exact point.
+
+### Example
+
+```text
+Student is watching a YouTube lecture
+             ↓
+Important concept at 52:14
+             ↓
+Click SnapStudy Extension
+             ↓
+Screenshot + 52:14 captured
+             ↓
+Saved as a Snap
+             ↓
+Later click "Continue"
+             ↓
+Lecture opens at 52:14
+```
